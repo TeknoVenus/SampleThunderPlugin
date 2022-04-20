@@ -1,0 +1,10 @@
+{
+ "locator":"libWPEFrameworkSamplePlugin.so",
+ "classname":"SamplePlugin",
+ "autostart":true,
+ "configuration":{
+  "root":{
+   "outofprocess":true
+  }
+ }
+}
