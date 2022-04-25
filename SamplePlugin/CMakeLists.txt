@@ -5,7 +5,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         SamplePlugin.cpp
-        SamplePluginImplementation.cpp
+        #SamplePluginImplementation.cpp
         SamplePluginJsonRpc.cpp
         Module.cpp
 )
