@@ -73,8 +73,15 @@ SamplePluginClient::SamplePluginClient()
 SamplePluginClient::~SamplePluginClient()
 {
     // Clean up
-    mController->Release();
-    mSamplePlugin->Release();
+    if (mController)
+    {
+        mController->Release();
+    }
+
+    if (mSamplePlugin)
+    {
+        mSamplePlugin->Release();
+    }
 
     // Disconnect from the COM-RPC socket
     mClient->Close(RPC::CommunicationTimeOut);

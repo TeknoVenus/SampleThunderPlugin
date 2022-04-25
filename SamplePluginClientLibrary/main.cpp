@@ -7,11 +7,15 @@ int main(int argc, char const *argv[])
 
     std::unique_ptr<SamplePluginClient> client = std::make_unique<SamplePluginClient>();
 
-    client->ActivateSamplePlugin();
+    if (client->IsValid())
+    {
+        client->ActivateSamplePlugin();
 
-    std::string greeting = client->GetGreeting("Foobar");
-    Log("Generated greeting - %s", greeting.c_str());
+        std::string greeting = client->GetGreeting("Foobar");
+        Log("Generated greeting - %s", greeting.c_str());
 
-    client->DeactivateSamplePlugin();
+        client->DeactivateSamplePlugin();
+    }
+
     return 0;
 }
