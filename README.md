@@ -26,8 +26,8 @@ You should end up with a directory structure as below
 ├── ThunderInterfaces
 ```
 
-Copy the `TestPlugins/Interfaces/ISamplePlugin.h` interface to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
-Copy the `TestPlugins/Interfaces/SamplePlugin.json` schema to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
+* Copy the `TestPlugins/Interfaces/ISamplePlugin.h` interface to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
+* Copy the `TestPlugins/Interfaces/SamplePlugin.json` schema to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
 
 Now build Thunder (only need to do this once). In all below instructions, run the commands in the root directory you cloned all the repos into
 
