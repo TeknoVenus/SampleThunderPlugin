@@ -17,6 +17,9 @@ namespace WPEFramework
               _samplePlugin(nullptr),
               _notification(this),
               _notificationCallbacks({}),
+              _timer(Core::Thread::DefaultStackSize(), _T("SamplePluginTimer")),
+              _timerHandler(std::bind(&SamplePlugin::TimerCallback, this, std::placeholders::_1), 1),
+              _timerFrequencyMs(5000), // Run our timer every 5 seconds
               _greetings({"Hello", "Goodbye", "Hi", "Bye", "Good Morning", "Good Afternoon"}) // The different greeting messages we can generate
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
@@ -41,6 +44,7 @@ namespace WPEFramework
             ASSERT(_service == nullptr);
             ASSERT(_samplePlugin == nullptr);
 
+            // Syslog Startup messages are always printed by default
             SYSLOG(Logging::Startup, (_T("Initializing SamplePlugin")));
             SYSLOG(Logging::Startup, (_T("Initialize running in process %d"), Core::ProcessInfo().Id()));
 
@@ -77,6 +81,9 @@ namespace WPEFramework
                 return "Failed to initialize SamplePlugin";
             }
 
+            // Set up a regular timer so we can demo working notifications
+            _timer.Schedule(Core::Time::Now().Add(_timerFrequencyMs), _timerHandler);
+
             // Success
             return "";
         }
@@ -105,6 +112,9 @@ namespace WPEFramework
                 _samplePlugin->Release();
             }
 
+            // Stop the running timer
+            _timer.Revoke(_timerHandler);
+
             // Set everything back to default
             _connectionId = 0;
             _service = nullptr;
@@ -129,16 +139,17 @@ namespace WPEFramework
 
         /**
          * Our notification handler
-         *
-         * TODO:: Fully understand notifications
          */
         void SamplePlugin::SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event)
         {
-            TRACE(Trace::Information, (_T("Raising a notification")));
+            TRACE(Trace::Information, (_T("Handled a notification")));
         }
 
         /**
          * The actual method we want to implement from the interface
+         *
+         * If running out of process, this will run in the out-of-process part and return
+         * the result over COM-RPC
          *
          * Generate a greeting
          *
@@ -156,14 +167,6 @@ namespace WPEFramework
             std::uniform_int_distribution<std::mt19937::result_type> distribution(0, _greetings.size() - 1);
 
             std::string greeting = _greetings[distribution(rng)];
-
-            // Trigger a notification for anyone who's listening
-            // TODO:: Understand notifications better
-            std::lock_guard<std::mutex> locker(_notificationMutex);
-            for (const auto callback : _notificationCallbacks)
-            {
-                callback->SomethingHappend(ISamplePlugin::INotification::EXCITING_THING_HAPPENED);
-            }
 
             // Build the final message
             result = greeting + ", " + message;
@@ -205,6 +208,28 @@ namespace WPEFramework
             }
 
             return Core::ERROR_NONE;
+        }
+
+        /**
+         * Triggered when the timer is fired
+         *
+         * Note for the sake of the simplicity in this example, this is run in the main
+         * WPEFramework process, even if the plugin implementation is running out-of-process.
+         */
+        void SamplePlugin::TimerCallback(uint64_t scheduleTime)
+        {
+            SYSLOG(Logging::Startup, (_T("Hello from the timer callback! Firing in process %d"), Core::ProcessInfo().Id()));
+
+            // Fire off some notifications for anyone listening
+            std::lock_guard<std::mutex> locker(_notificationMutex);
+            SYSLOG(Logging::Startup, (_T("We have %d callbacks to trigger"), _notificationCallbacks.size()));
+            for (const auto callback : _notificationCallbacks)
+            {
+                callback->SomethingHappend(ISamplePlugin::INotification::EXCITING_THING_HAPPENED);
+            }
+
+            // Reschedule the timer since by default it's just a single shot
+            _timer.Schedule(Core::Time::Now().Add(_timerFrequencyMs), _timerHandler);
         }
     }
 }

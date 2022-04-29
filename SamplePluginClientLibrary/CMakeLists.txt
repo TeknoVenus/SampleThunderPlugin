@@ -22,6 +22,8 @@ add_executable(SamplePluginClient
         main.cpp
 )
 
+# Only need to link to client lib, will bring in dependencies
+# automatically
 target_link_libraries(SamplePluginClient
         PRIVATE
         SamplePluginClientLib

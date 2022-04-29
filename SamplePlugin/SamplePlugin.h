@@ -6,6 +6,8 @@
 #include <interfaces/ISamplePlugin.h>
 #include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
 
+#include "SamplePluginTimer.h"
+
 #include <mutex>
 
 namespace WPEFramework
@@ -110,8 +112,10 @@ namespace WPEFramework
             // Clean up when we're told to deactivate
             void Deactivated(RPC::IRemoteConnection *connection);
 
-            // Our custom notification
             void SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event);
+
+        private:
+            void TimerCallback(uint64_t scheduleTime);
 
         private:
             // JSON-RPC setup
@@ -129,6 +133,12 @@ namespace WPEFramework
 
             std::list<Exchange::ISamplePlugin::INotification *> _notificationCallbacks;
             std::mutex _notificationMutex;
+
+            // Run background jobs on the managed thread pool
+            Core::TimerType<SamplePluginTimer> _timer;
+            SamplePluginTimer _timerHandler;
+            // How often the timer should fire
+            const int _timerFrequencyMs;
 
             const std::vector<std::string> _greetings;
         };

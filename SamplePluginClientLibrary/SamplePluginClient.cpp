@@ -5,11 +5,28 @@
 #include <interfaces/IMemory.h>
 #include <interfaces/IDictionary.h>
 
+// Notification handlers
+
+/**
+ * Callback that should be fired when the plugin emits this notification
+ *
+ * More complex plugins will likely have lots of different notifications we can
+ * register distinct callbacks for
+ */
+void SamplePluginClient::NotificationHandler::SomethingHappend(const Source event)
+{
+    // Just print something for now
+    Log("A notification! How exciting!");
+}
+
+// End notification handlers
+
 SamplePluginClient::SamplePluginClient()
     : mRemoteConnection(GetConnectionEndpoint()),
       mEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create()),
       mClient(Core::ProxyType<RPC::CommunicatorClient>::Create(mRemoteConnection, Core::ProxyType<Core::IIPCServer>(mEngine))),
-      mValid(false)
+      mValid(false),
+      mNotification()
 {
     // Announce our arrival over COM-RPC
     mEngine->Announcements(mClient->Announcement());
@@ -40,7 +57,7 @@ SamplePluginClient::SamplePluginClient()
     This is not ideal as if the plugin has a separate implementation that registers the COM-RPC interface but not IShell
     we can't traverse our way to it from /tmp/communicator.
 
-    High-bandwidth/latency sensitive plugins should also use their own sockets so they can configure appropriate buffer sizes and prevent
+    High-bandwidth/latency sensitive plugins` should also use their own sockets so they can configure appropriate buffer sizes and prevent
     the connection from being backed up with other requests. However this was beyond the scope of this example.
     */
 
@@ -52,13 +69,15 @@ SamplePluginClient::SamplePluginClient()
         return;
     }
 
+    // Plugin must be activated to query the interface, so activate it now
     if (!ActivateSamplePlugin())
     {
         mValid = false;
         return;
     }
 
-    // Plugin must be activated to query the interface
+    // Now traverse the shell and get the interface we actually care about
+    // If the plugin implemented many interfaces, query them one at a time
     mSamplePlugin = mController->QueryInterface<Exchange::ISamplePlugin>();
     if (!mSamplePlugin)
     {
@@ -67,6 +86,11 @@ SamplePluginClient::SamplePluginClient()
         return;
     }
 
+    // Register for notifications - we want our callbacks to fire
+    mSamplePlugin->AddRef();
+    mSamplePlugin->Register(&mNotification);
+
+    // All good
     mValid = true;
 }
 
@@ -80,6 +104,10 @@ SamplePluginClient::~SamplePluginClient()
 
     if (mSamplePlugin)
     {
+        // Remove our notification callback
+        mSamplePlugin->Unregister(&mNotification);
+
+        // Clean up
         mSamplePlugin->Release();
     }
 
@@ -90,7 +118,7 @@ SamplePluginClient::~SamplePluginClient()
         mClient.Release();
     }
 
-    // Dispose of any singletons we created
+    // Dispose of any singletons we created (Thunder uses a lot of singletons internally)
     Core::Singleton::Dispose();
 }
 
@@ -110,7 +138,6 @@ bool SamplePluginClient::ActivateSamplePlugin()
 
     if (result != Core::ERROR_NONE)
     {
-
         Log("Failed to activate SamplePlugin with error %d (%s)", result, Core::ErrorToString(result));
         return false;
     }
@@ -161,7 +188,6 @@ std::string SamplePluginClient::GetGreeting(const std::string &message)
     if (mSamplePlugin)
     {
         std::string greeting;
-
         uint32_t result = mSamplePlugin->Greet("Stephen", greeting);
         if (result == Core::ERROR_NONE)
         {

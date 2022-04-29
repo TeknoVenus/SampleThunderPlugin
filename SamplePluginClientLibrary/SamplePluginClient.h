@@ -10,17 +10,31 @@
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define Log(fmt, ...)                                                                        \
-    do                                                                                             \
-    {                                                                                              \
+#define Log(fmt, ...)                                                                                   \
+    do                                                                                                  \
+    {                                                                                                   \
         fprintf(stderr, "[%s:%d](%s): " fmt "\n", __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
-        fflush(stderr);                                                                            \
+        fflush(stderr);                                                                                 \
     } while (0)
+// End logging boilerplate
 
 using namespace WPEFramework;
 
 class SamplePluginClient
 {
+    // We want do run our own custom code when the plugin raises a notification
+    // Implement the INotification class to do what we want
+    class NotificationHandler : public Exchange::ISamplePlugin::INotification
+    {
+        void SomethingHappend(const Source event) override;
+
+        // Must define an interface map so Thunder knows what type we are when
+        // we register ourselves
+        BEGIN_INTERFACE_MAP(NotificationHandler)
+        INTERFACE_ENTRY(Exchange::ISamplePlugin::INotification)
+        END_INTERFACE_MAP
+    };
+
 public:
     SamplePluginClient();
     ~SamplePluginClient();
@@ -28,6 +42,7 @@ public:
 public:
     bool ActivateSamplePlugin();
     bool DeactivateSamplePlugin();
+
     std::string GetGreeting(const std::string &message);
     bool IsValid();
 
@@ -48,8 +63,11 @@ private:
 
     Core::ProxyType<RPC::CommunicatorClient> mClient;
 
-    Exchange::ISamplePlugin* mSamplePlugin;
-    PluginHost::IShell* mController;
+    Exchange::ISamplePlugin *mSamplePlugin;
+    PluginHost::IShell *mController;
 
     bool mValid;
+
+    // Instance of our notification handler
+    Core::Sink<NotificationHandler> mNotification;
 };
