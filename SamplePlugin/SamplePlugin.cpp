@@ -1,3 +1,22 @@
+/**
+* If not stated otherwise in this file or this component's LICENSE
+* file the following copyright and licenses apply:
+*
+* Copyright 2022 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
+
 #include "SamplePlugin.h"
 
 #include <random>
@@ -138,7 +157,7 @@ namespace WPEFramework
         void SamplePlugin::SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event)
         {
             // A notification occurred on the COM-RPC side of the plugin
-            SYSLOG(Logging::Startup, (_T("Handled a notification in process %d"), Core::ProcessInfo().Id()));
+            TRACE(Trace::Information, (_T("Handled a notification in process %d"), Core::ProcessInfo().Id()));
         }
     }
 }
