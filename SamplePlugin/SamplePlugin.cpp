@@ -15,12 +15,7 @@ namespace WPEFramework
             : _connectionId(0),
               _service(nullptr),
               _samplePlugin(nullptr),
-              _notification(this),
-              _notificationCallbacks({}),
-              _timer(Core::Thread::DefaultStackSize(), _T("SamplePluginTimer")),
-              _timerHandler(std::bind(&SamplePlugin::TimerCallback, this, std::placeholders::_1), 1),
-              _timerFrequencyMs(5000), // Run our timer every 5 seconds
-              _greetings({"Hello", "Goodbye", "Hi", "Bye", "Good Morning", "Good Afternoon"}) // The different greeting messages we can generate
+              _notification(this)
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
         }
@@ -60,7 +55,7 @@ namespace WPEFramework
             //
             // Ideally for large, complex plugins we would actually split the plugin into two libraries - a thin library that just calls
             // _service->Root to launch WPEProcess, and a larger library that is only ever run inside WPEProcess only (we do this for Cobalt and WebKitBrowser)
-            _samplePlugin = service->Root<Exchange::ISamplePlugin>(_connectionId, 2000, _T("SamplePlugin"));
+            _samplePlugin = service->Root<Exchange::ISamplePlugin>(_connectionId, 2000, _T("SamplePluginImplementation"));
 
             // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
             if (_samplePlugin != nullptr)
@@ -80,9 +75,6 @@ namespace WPEFramework
                 // Returning a string signals that we failed to initialize - WPEFramework will print this as an error message
                 return "Failed to initialize SamplePlugin";
             }
-
-            // Set up a regular timer so we can demo working notifications
-            _timer.Schedule(Core::Time::Now().Add(_timerFrequencyMs), _timerHandler);
 
             // Success
             return "";
@@ -112,9 +104,6 @@ namespace WPEFramework
                 _samplePlugin->Release();
             }
 
-            // Stop the running timer
-            _timer.Revoke(_timerHandler);
-
             // Set everything back to default
             _connectionId = 0;
             _service = nullptr;
@@ -129,7 +118,8 @@ namespace WPEFramework
 
         void SamplePlugin::Deactivated(RPC::IRemoteConnection *connection)
         {
-            // TODO:: Understand exactly what this is for
+            // TODO:: Understand exactly what this is for - seems to be for handling unexpected deactivations
+            // and reporting a FAILURE message back to Thunder
             if (connection->Id() == _connectionId)
             {
                 ASSERT(_service != nullptr);
@@ -139,97 +129,16 @@ namespace WPEFramework
 
         /**
          * Our notification handler
+         *
+         * This will run inside the main WPEFramework process, but will be called from the COM-RPC side
+         * of the plugin
+         *
+         * Use this to raise a JSONRPC notification
          */
         void SamplePlugin::SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event)
         {
-            TRACE(Trace::Information, (_T("Handled a notification")));
-        }
-
-        /**
-         * The actual method we want to implement from the interface
-         *
-         * If running out of process, this will run in the out-of-process part and return
-         * the result over COM-RPC
-         *
-         * Generate a greeting
-         *
-         * @param[in] message   Who the greeting is for
-         * @param[out] result   The generated greeting
-         */
-        uint32_t SamplePlugin::Greet(const string &message, string &result /* @out */)
-        {
-            TRACE(Trace::Information, (_T("Generating greeting")));
-            TRACE(Trace::Information, (_T("Running in process %d"), Core::ProcessInfo().Id()));
-
-            // Pick a random greeting from the pre-determined list
-            std::random_device dev;
-            std::mt19937 rng(dev());
-            std::uniform_int_distribution<std::mt19937::result_type> distribution(0, _greetings.size() - 1);
-
-            std::string greeting = _greetings[distribution(rng)];
-
-            // Build the final message
-            result = greeting + ", " + message;
-
-            // All good - return success
-            return Core::ERROR_NONE;
-        }
-
-        /**
-         * Register a notification callback
-         */
-        uint32_t SamplePlugin::Register(ISamplePlugin::INotification *notification)
-        {
-            std::lock_guard<std::mutex> locker(_notificationMutex);
-
-            // Make sure we can't register the same notification callback multiple times
-            if (std::find(_notificationCallbacks.begin(), _notificationCallbacks.end(), notification) == _notificationCallbacks.end())
-            {
-                _notificationCallbacks.push_back(notification);
-                notification->AddRef();
-            }
-
-            return Core::ERROR_NONE;
-        }
-
-        /**
-         * Unregister a notification callback
-         */
-        uint32_t SamplePlugin::Unregister(ISamplePlugin::INotification *notification)
-        {
-            std::lock_guard<std::mutex> locker(_notificationMutex);
-
-            // Make sure we can't register the same notification callback multiple times
-            auto itr = std::find(_notificationCallbacks.begin(), _notificationCallbacks.end(), notification);
-            if (itr != _notificationCallbacks.end())
-            {
-                (*itr)->Release();
-                _notificationCallbacks.erase(itr);
-            }
-
-            return Core::ERROR_NONE;
-        }
-
-        /**
-         * Triggered when the timer is fired
-         *
-         * Note for the sake of the simplicity in this example, this is run in the main
-         * WPEFramework process, even if the plugin implementation is running out-of-process.
-         */
-        void SamplePlugin::TimerCallback(uint64_t scheduleTime)
-        {
-            SYSLOG(Logging::Startup, (_T("Hello from the timer callback! Firing in process %d"), Core::ProcessInfo().Id()));
-
-            // Fire off some notifications for anyone listening
-            std::lock_guard<std::mutex> locker(_notificationMutex);
-            SYSLOG(Logging::Startup, (_T("We have %d callbacks to trigger"), _notificationCallbacks.size()));
-            for (const auto callback : _notificationCallbacks)
-            {
-                callback->SomethingHappend(ISamplePlugin::INotification::EXCITING_THING_HAPPENED);
-            }
-
-            // Reschedule the timer since by default it's just a single shot
-            _timer.Schedule(Core::Time::Now().Add(_timerFrequencyMs), _timerHandler);
+            // A notification occurred on the COM-RPC side of the plugin
+            SYSLOG(Logging::Startup, (_T("Handled a notification in process %d"), Core::ProcessInfo().Id()));
         }
     }
 }

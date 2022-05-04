@@ -28,8 +28,8 @@ class SamplePluginClient
     {
         void SomethingHappend(const Source event) override;
 
-        // Must define an interface map so Thunder knows what type we are when
-        // we register ourselves
+        // Must define an interface map since we are implementing an interface on the exchange
+        // so Thunder knows what type we are
         BEGIN_INTERFACE_MAP(NotificationHandler)
         INTERFACE_ENTRY(Exchange::ISamplePlugin::INotification)
         END_INTERFACE_MAP
@@ -63,6 +63,8 @@ private:
 
     Core::ProxyType<RPC::CommunicatorClient> mClient;
 
+    // The implementation of the ISamplePlugin interface - this could be an in-process, out-of-process
+    // or distributed plugin, but as a client we don't need to worry about that
     Exchange::ISamplePlugin *mSamplePlugin;
     PluginHost::IShell *mController;
 

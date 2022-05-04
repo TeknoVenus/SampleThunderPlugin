@@ -27,7 +27,6 @@ namespace WPEFramework
                                      string &result /* @out */) = 0;
 
 
-
             /* @event */
             struct EXTERNAL INotification : virtual public Core::IUnknown
             {

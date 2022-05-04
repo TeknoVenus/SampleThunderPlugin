@@ -4,7 +4,8 @@
  "autostart":true,
  "configuration":{
   "root":{
-   "outofprocess":true
+   "outofprocess":false,
+   "locator":"libWPEFrameworkSamplePluginImplementation.so"
   }
  }
 }

@@ -21,13 +21,13 @@ You should end up with a directory structure as below
 
 ```
 ~/srcThunder/
-├── TestPlugins
+├── samplethunderplugin (this repo)
 ├── Thunder
 ├── ThunderInterfaces
 ```
 
-* Copy the `TestPlugins/Interfaces/ISamplePlugin.h` interface to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
-* Copy the `TestPlugins/Interfaces/SamplePlugin.json` schema to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
+* Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
+* Copy the `Interfaces/SamplePlugin.json` schema from this repo to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
 
 Now build Thunder (only need to do this once). In all below instructions, run the commands in the root directory you cloned all the repos into
 
@@ -40,7 +40,6 @@ sudo make -j4 -C build/ThunderTools && make -C build/ThunderTools install
 
 # Thunder Core
 sudo cmake -HThunder -Bbuild/Thunder -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TYPE=Debug -DBINDING=127.0.0.1 -DPORT=9998
-
 sudo make -j4 -C build/Thunder && make -C build/Thunder install
 ```
 
@@ -52,8 +51,8 @@ sudo make -j4 -C build/ThunderInterfaces && make -C build/ThunderInterfaces inst
 
 Finally build the sample plugin & accompanying client libraries and test app
 ```
-sudo cmake -HTestPlugins -Bbuild/TestPlugins -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/TestPlugins && make -C build/TestPlugins install
+sudo cmake -HSamplethunderplugin -Bbuild/Samplethunderplugin -DCMAKE_INSTALL_PREFIX=/usr
+sudo make -j4 -C build/Samplethunderplugin && make -C build/Samplethunderplugin install
 ```
 
 # Usage
@@ -112,12 +111,12 @@ The plugin should respond with a generated greeting
 }
 ```
 
-You should see the below logs in WPEFramework
 ```
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePluginJsonRpc.cpp:47] Information: Incoming JSON-RPC request for greeter method with input params {"message":"world"}
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:150] Information: Generating greeting
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:151] Information: Running in process 36087
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:137] Information: Raising a notification
+You should see the below logs in WPEFramework
 ```
 
 ## COM-RPC
@@ -126,19 +125,16 @@ To test COM-RPC, use the test client and accompanying example C++ library.
 For test purposes, the test client will activate & deactivate the plugin when it starts/exits respectively.
 
 ```shell
-$ cd ./build/TestPlugins/SamplePluginClientLibrary
-$ ./SamplePluginClient 
+vagrant@dobby-vagrant-focal:~/srcThunder/build/samplethunderplugin/TestApps/COMRPC$ ./COMRPCTestApp 
 [main.cpp:6](main): Starting SamplePluginClient
-[SamplePluginClient.cpp:22](SamplePluginClient): Connected to Thunder @ '/tmp/communicator'
-[SamplePluginClient.cpp:34](SamplePluginClient): SamplePlugin is deactivated - activating now
-[SamplePluginClient.cpp:43](SamplePluginClient): Activated plugin successfully in 12 ms
-[main.cpp:12](main): Generated greeting - Hello, Stephen
-[SamplePluginClient.cpp:66](~SamplePluginClient): Deactivating plugin
-[SamplePluginClient.cpp:75](~SamplePluginClient): Deactivated plugin successfully in 1 ms
+[main.cpp:7](main): Constructing SamplePlugin Client Library. . .
+[SamplePluginClient.cpp:49](SamplePluginClient): Connecting to Thunder @ '/tmp/communicator'
+[SamplePluginClient.cpp:21](SomethingHappend): Received an exciting notification!
+[main.cpp:16](main): Generated greeting - Hello, Foobar
 ```
 
 ## Switch between In-Process and Out-Of-Process execution
-To change if the plugin runs in or out-of-process, edit the `SamplePlugin.config` file in `TestPlugins/SamplePlugin/SamplePlugin.config` and rebuild. Then restart WPEFramework.
+To change if the plugin runs in or out-of-process, edit the `SamplePlugin.config` file in `Samplethunderplugin/SamplePlugin/SamplePlugin.config` and rebuild. Then restart WPEFramework.
 
 When running out-of-process, you'll see a new WPEProcess spawned when the plugin is activated
 ```

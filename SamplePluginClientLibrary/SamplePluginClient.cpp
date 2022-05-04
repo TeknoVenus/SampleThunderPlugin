@@ -5,7 +5,7 @@
 #include <interfaces/IMemory.h>
 #include <interfaces/IDictionary.h>
 
-// Notification handlers
+// Start notification handlers
 
 /**
  * Callback that should be fired when the plugin emits this notification
@@ -16,7 +16,14 @@
 void SamplePluginClient::NotificationHandler::SomethingHappend(const Source event)
 {
     // Just print something for now
-    Log("A notification! How exciting!");
+    if (event == EXCITING_THING_HAPPENED)
+    {
+        Log("Received an exciting notification!");
+    }
+    else if (event == BORING_THING_HAPPENED)
+    {
+        Log("Received a boring notification!");
+    }
 }
 
 // End notification handlers
@@ -39,7 +46,7 @@ SamplePluginClient::SamplePluginClient()
         return;
     }
 
-    Log("Connected to Thunder @ '%s'", mClient->Source().RemoteId().c_str());
+    Log("Connecting to Thunder @ '%s'", mClient->Source().RemoteId().c_str());
 
     // Open a connection to Thunder
     /* Notes: There are 2 ways to connect to a plugin over COM-RPC:
@@ -64,7 +71,7 @@ SamplePluginClient::SamplePluginClient()
     mController = mClient->Open<PluginHost::IShell>(_T("SamplePlugin"), ~0, 3000);
     if (!mController)
     {
-        Log("Failed to open IShell interface of SamplePlugin");
+        Log("Failed to open IShell interface of SamplePlugin - is Thunder running?");
         mValid = false;
         return;
     }
@@ -81,12 +88,12 @@ SamplePluginClient::SamplePluginClient()
     mSamplePlugin = mController->QueryInterface<Exchange::ISamplePlugin>();
     if (!mSamplePlugin)
     {
-        Log("Could not find ISamplePlugin interface - is the plugin running & does it actually implement it?");
+        Log("Failed to open ISamplePlugin interface of SamplePlugin - is Thunder running?");
         mValid = false;
         return;
     }
 
-    // Register for notifications - we want our callbacks to fire
+    // Register for notifications - we want our callbacks to fire when the plugin emits a notification
     mSamplePlugin->AddRef();
     mSamplePlugin->Register(&mNotification);
 
@@ -122,6 +129,11 @@ SamplePluginClient::~SamplePluginClient()
     Core::Singleton::Dispose();
 }
 
+/**
+ * Attempt to activate the plugin 'SamplePlugin' and prints how long it took
+ *
+ * @return true if activated successfully
+ */
 bool SamplePluginClient::ActivateSamplePlugin()
 {
     if (mController->State() == PluginHost::IShell::ACTIVATED)
@@ -148,6 +160,11 @@ bool SamplePluginClient::ActivateSamplePlugin()
     return true;
 }
 
+/**
+ * Attempt to deactivate the plugin 'SamplePlugin' and prints how long it took
+ *
+ * @return true if deactivated successfully
+ */
 bool SamplePluginClient::DeactivateSamplePlugin()
 {
     if (mController->State() == PluginHost::IShell::DEACTIVATED)
@@ -171,10 +188,13 @@ bool SamplePluginClient::DeactivateSamplePlugin()
     auto end = std::chrono::high_resolution_clock::now();
     auto deactivationTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Log("Deactivated plugin successfully in %lu ms", deactivationTime.count());
-
     return true;
 }
 
+/**
+ * Return true if we connected to Thunder successfully and managed to
+ * find the COM-RPC interface(s) we care about
+ */
 bool SamplePluginClient::IsValid()
 {
     return mValid;
@@ -188,7 +208,7 @@ std::string SamplePluginClient::GetGreeting(const std::string &message)
     if (mSamplePlugin)
     {
         std::string greeting;
-        uint32_t result = mSamplePlugin->Greet("Stephen", greeting);
+        uint32_t result = mSamplePlugin->Greet(message, greeting);
         if (result == Core::ERROR_NONE)
         {
             return greeting;
@@ -206,13 +226,15 @@ std::string SamplePluginClient::GetGreeting(const std::string &message)
 }
 
 /**
- * Retrieves the unix socket we will communicate over for COM-RPC
+ * Retrieves the socket we will communicate over for COM-RPC
  */
 Core::NodeId SamplePluginClient::GetConnectionEndpoint()
 {
     std::string communicatorPath;
     Core::SystemInfo::GetEnvironment(_T("COMMUNICATOR_PATH"), communicatorPath);
 
+    // On linux, Thunder defaults to /tmp/communicator for the generic COM-RPC
+    // interface
     if (communicatorPath.empty())
     {
         communicatorPath = "/tmp/communicator";

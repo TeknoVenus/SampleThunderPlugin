@@ -1,11 +1,10 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME SamplePluginClientLibrary
+#define MODULE_NAME JSONRPC_TestApp
 #endif
 
 #include <core/core.h>
-#include <com/com.h>
 
 #undef EXTERNAL
 #define EXTERNAL

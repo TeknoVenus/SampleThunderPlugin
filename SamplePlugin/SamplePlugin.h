@@ -6,8 +6,6 @@
 #include <interfaces/ISamplePlugin.h>
 #include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
 
-#include "SamplePluginTimer.h"
-
 #include <mutex>
 
 namespace WPEFramework
@@ -19,15 +17,14 @@ namespace WPEFramework
         /**
          * Sample plugin that exposes an API over both COM-RPC and JSON-RPC
          *
-         * Implements the ISamplePlugin interface
-         *
          */
-        class SamplePlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC, public Exchange::ISamplePlugin
+        class SamplePlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC
         {
             /**
-             * Our custom notification call
+             * Our notification handling code
              *
-             * TODO:: Understand this better
+             * Handle both the Activate/Deactivate notifications and provide a handler
+             * for notifications raised by the COM-RPC API
              */
             class Notification : public RPC::IRemoteConnection::INotification,
                                  public Exchange::ISamplePlugin::INotification
@@ -81,11 +78,19 @@ namespace WPEFramework
             SamplePlugin &operator=(const SamplePlugin &) = delete;
 
             // Build QueryInterface implementation, specifying all possible interfaces we implement
-            // This is necessary so that consumers can discover which plugin implements which interface
+            // This is necessary so that consumers can discover which plugin implements what interface
             BEGIN_INTERFACE_MAP(SamplePlugin)
+
+            // Which interfaces do we implement?
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
-            INTERFACE_ENTRY(Exchange::ISamplePlugin)
+
+            // We need to tell Thunder that this plugin provides the ISamplePlugin interface, but
+            // since it's not actually implemented here we tell Thunder where it can
+            // find the real implementation
+            // This allows other components to call QueryInterface<ISamplePLugin>() and
+            // receive the actual implementation (which could be in-process or out-of-process)
+            INTERFACE_AGGREGATE(Exchange::ISamplePlugin, _samplePlugin)
             END_INTERFACE_MAP
 
         public:
@@ -98,24 +103,12 @@ namespace WPEFramework
             void Deinitialize(PluginHost::IShell *service) override;
             string Information() const override;
 
-        public:
-            // Implement the main methods from ISamplePlugin
-            uint32_t Greet(const string &message, string &result /* @out */) override;
-
-        private:
-            // Handle Notification registration/removal
-            uint32_t Register(ISamplePlugin::INotification *notification) override;
-            uint32_t Unregister(ISamplePlugin::INotification *notification) override;
-
         private:
             // Notification/event handlers
             // Clean up when we're told to deactivate
             void Deactivated(RPC::IRemoteConnection *connection);
 
             void SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event);
-
-        private:
-            void TimerCallback(uint64_t scheduleTime);
 
         private:
             // JSON-RPC setup
@@ -130,17 +123,6 @@ namespace WPEFramework
             PluginHost::IShell *_service;
             Exchange::ISamplePlugin *_samplePlugin;
             Core::Sink<Notification> _notification;
-
-            std::list<Exchange::ISamplePlugin::INotification *> _notificationCallbacks;
-            std::mutex _notificationMutex;
-
-            // Run background jobs on the managed thread pool
-            Core::TimerType<SamplePluginTimer> _timer;
-            SamplePluginTimer _timerHandler;
-            // How often the timer should fire
-            const int _timerFrequencyMs;
-
-            const std::vector<std::string> _greetings;
         };
     }
 }
