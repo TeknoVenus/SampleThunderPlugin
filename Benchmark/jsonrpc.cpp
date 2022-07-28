@@ -72,7 +72,7 @@ void JsonRpcFixture::DoEcho(::benchmark::State &state, const std::string &msg)
     EchoParamsData params;
     params.Data = msg;
 
-    uint32_t success = mRemoteObject->Invoke<EchoParamsData, EchoResultData>(1000, "echo", params, result);
+    uint32_t success = mRemoteObject->Invoke<EchoParamsData, EchoResultData>(20000, "echo", params, result);
 
     if (success != Core::ERROR_NONE)
     {
