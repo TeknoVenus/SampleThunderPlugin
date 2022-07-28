@@ -76,6 +76,17 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
+
+        uint32_t SamplePluginImplementation::Echo(const string &message, string &result /* @out */)
+        {
+            // Just return exactly what we were sent
+            result = message;
+
+            // All good - return success
+            return Core::ERROR_NONE;
+        }
+
+
         /**
          * Register a notification callback
          */

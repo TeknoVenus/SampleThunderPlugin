@@ -136,6 +136,7 @@ namespace WPEFramework
 
             // JSON-RPC methods (take JSON in, spit JSON back out)
             uint32_t Greeter(const GreeterParamsData &params, GreeterResultData &response);
+            uint32_t Echo(const EchoParamsData &params, EchoResultData &response);
 
         private:
             uint32_t _connectionId;

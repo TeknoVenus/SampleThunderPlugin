@@ -46,6 +46,31 @@
                     }
                 }
             }
+        },
+        "echo": {
+            "summary": "Return a greeting to the user",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "string"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                }
+            }
         }
     },
     "properties": {},

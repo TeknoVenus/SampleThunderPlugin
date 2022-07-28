@@ -14,3 +14,9 @@ add_subdirectory(SamplePlugin)
 add_subdirectory(SamplePluginClientLibrary)
 add_subdirectory(TestApps/COMRPC)
 add_subdirectory(TestApps/JSONRPC)
+
+option( BUILD_BENCHMARK "Build Google Benchmark based benchmark tool" OFF )
+
+if (BUILD_BENCHMARK)
+    add_subdirectory(Benchmark)
+endif()

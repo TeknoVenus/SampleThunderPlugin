@@ -47,6 +47,7 @@ namespace WPEFramework
         public:
             // Implement the main methods from ISamplePlugin
             uint32_t Greet(const string &message, string &result /* @out */) override;
+            uint32_t Echo(const string &message, string &result /* @out */) override;
 
         public:
             // Handle Notification registration/removal

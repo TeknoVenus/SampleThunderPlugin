@@ -45,7 +45,7 @@ namespace WPEFramework
             virtual uint32_t Greet(const string &message,
                                      string &result /* @out */) = 0;
 
-
+            virtual uint32_t Echo(const string &message, string &result /* @out */) = 0;
 
             /* @event */
             struct EXTERNAL INotification : virtual public Core::IUnknown

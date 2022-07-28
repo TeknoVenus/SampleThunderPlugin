@@ -28,6 +28,7 @@ You should end up with a directory structure as below
 
 * Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
 * Copy the `Interfaces/SamplePlugin.json` schema from this repo to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
+* Add a unique ID value for `ID_SAMPLE_PLUGIN` and `ID_SAMPLE_PLUGIN_NOTIFICATION` to `IDs.h` in ThunderInterfaces
 
 Now build Thunder (only need to do this once). In all below instructions, run the commands in the root directory you cloned all the repos into
 
@@ -36,23 +37,23 @@ mkdir ./build
 
 # Thunder Tools
 sudo cmake -HThunder/Tools -Bbuild/ThunderTools -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/ThunderTools && make -C build/ThunderTools install
+sudo make -j4 -C build/ThunderTools && sudo make -C build/ThunderTools install
 
 # Thunder Core
 sudo cmake -HThunder -Bbuild/Thunder -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TYPE=Debug -DBINDING=127.0.0.1 -DPORT=9998
-sudo make -j4 -C build/Thunder && make -C build/Thunder install
+sudo make -j4 -C build/Thunder && sudo make -C build/Thunder install
 ```
 
 Now build Thunder interfaces (do this every time you change `ISamplePlugin.h` or `SamplePlugin.json`)
 ```shell
 sudo cmake -HThunderInterfaces -Bbuild/ThunderInterfaces  -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/ThunderInterfaces && make -C build/ThunderInterfaces install
+sudo make -j4 -C build/ThunderInterfaces && sudo make -C build/ThunderInterfaces install
 ```
 
-Finally build the sample plugin & accompanying client libraries and test app
+Finally build this repo containing the sample plugin & accompanying client libraries and test apps
 ```
 sudo cmake -HSamplethunderplugin -Bbuild/Samplethunderplugin -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/Samplethunderplugin && make -C build/Samplethunderplugin install
+sudo make -j4 -C build/Samplethunderplugin && sudo make -C build/Samplethunderplugin install
 ```
 
 # Usage
@@ -140,4 +141,34 @@ When running out-of-process, you'll see a new WPEProcess spawned when the plugin
 ```
 vagrant    36077  0.0  0.5 618988 21904 pts/1    Sl+  12:00   0:00  |           \_ WPEFramework
 vagrant    37676  0.0  0.3  95684 14360 pts/1    Sl+  12:07   0:00  |               \_ WPEProcess -l libWPEFrameworkSamplePlugin.so -c SamplePlugin -C SamplePlugin -r /tmp/communicator -i 224 -x 5 -p "/root/SamplePlugin/" -s "/usr/lib/wpeframework/plugins/" -d "/usr/share/WPEFramework/SamplePlugin/" -a "/usr/bin/" -v "/tmp/SamplePlugin/" -m "/usr/lib/wpeframework/proxystubs/" -P "/opt/minidumps/" -e 127
+```
+
+## Benchmarks
+A benchmarking app is included to analyse the performance of COM-RPC and JSON-RPC
+
+To build the benchmarking app, first install Google Benchmark and then rebuild this repo, adding the `-DBUILD_BENCHMARK=ON` cmake flag. This will build a `/usr/bin/Benchmark` app that can be run
+
+```
+2022-07-28T12:01:23+01:00
+Running ./Benchmark
+Run on (8 X 1896.43 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 512 KiB (x8)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.40, 0.43, 0.22
+------------------------------------------------------------------
+Benchmark                        Time             CPU   Iterations
+------------------------------------------------------------------
+ComRpcFixture/100Bytes       0.399 ms        0.076 ms         8959
+ComRpcFixture/1KB            0.409 ms        0.076 ms         8746
+ComRpcFixture/10KB           0.438 ms        0.083 ms         8677
+ComRpcFixture/100KB          0.576 ms        0.093 ms         7651
+ComRpcFixture/1MB            0.820 ms        0.162 ms         4391
+JsonRpcFixture/100Bytes      0.440 ms        0.081 ms         8707
+JsonRpcFixture/1KB            3.80 ms        0.282 ms         1000
+JsonRpcFixture/10KB           15.6 ms         1.60 ms          462
+JsonRpcFixture/100KB          53.1 ms         13.3 ms           60
+JsonRpcFixture/1MB             366 ms         82.0 ms            8
 ```
