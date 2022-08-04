@@ -32,7 +32,7 @@ using namespace JsonData::SamplePlugin;
 
 void JsonRpcFixture::SetUp(const ::benchmark::State &state)
 {
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:55555")));
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
     mRemoteObject = std::make_unique<JSONRPC::LinkType<Core::JSON::IElement>>("SamplePlugin.1", "");
 }
 

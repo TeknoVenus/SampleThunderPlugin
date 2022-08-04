@@ -94,6 +94,10 @@ namespace WPEFramework
         }
 
 
+        /**
+         * JSON-RPC wrapper around the Echo() method the plugin implements
+         *
+         */
         uint32_t SamplePlugin::Echo(const  EchoParamsData &params, EchoResultData &response)
         {
             uint32_t errorCode = Core::ERROR_NONE;

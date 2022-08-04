@@ -69,12 +69,17 @@ namespace WPEFramework
                     _parent.SomethingHappend(event);
                 }
 
+                // The activated/deactived methods are part of the RPC::IRemoteConnection::INotification
+                // interface. These are triggered when Thunder detects a connection/disconnection over the
+                // COM-RPC link.
                 void Activated(RPC::IRemoteConnection * /* connection */) override
                 {
                 }
 
                 void Deactivated(RPC::IRemoteConnection *connection) override
                 {
+                    // Something's caused the remote connection to be lost - this could be a crash
+                    // on the remote side so deactivate ourselves
                     _parent.Deactivated(connection);
                 }
 
@@ -127,6 +132,7 @@ namespace WPEFramework
             // Clean up when we're told to deactivate
             void Deactivated(RPC::IRemoteConnection *connection);
 
+            // Our custom event
             void SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event);
 
         private:

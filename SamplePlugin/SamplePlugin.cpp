@@ -135,10 +135,11 @@ namespace WPEFramework
             return string();
         }
 
+
         void SamplePlugin::Deactivated(RPC::IRemoteConnection *connection)
         {
-            // TODO:: Understand exactly what this is for - seems to be for handling unexpected deactivations
-            // and reporting a FAILURE message back to Thunder
+            // Gracefully handle an unexpected termination from the other side of the connection (for example if the remote process crashed)
+            // and deactivate ourselves as we cannot continue safely
             if (connection->Id() == _connectionId)
             {
                 ASSERT(_service != nullptr);

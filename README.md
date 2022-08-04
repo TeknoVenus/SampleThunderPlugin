@@ -26,6 +26,8 @@ You should end up with a directory structure as below
 ├── ThunderInterfaces
 ```
 
+Be aware RDK is currently using the **R2** branch of Thunder and ThunderInterfaces.
+
 * Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
 * Copy the `Interfaces/SamplePlugin.json` schema from this repo to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
 * Add a unique ID value for `ID_SAMPLE_PLUGIN` and `ID_SAMPLE_PLUGIN_NOTIFICATION` to `IDs.h` in ThunderInterfaces
@@ -36,24 +38,24 @@ Now build Thunder (only need to do this once). In all below instructions, run th
 mkdir ./build
 
 # Thunder Tools
-sudo cmake -HThunder/Tools -Bbuild/ThunderTools -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/ThunderTools && sudo make -C build/ThunderTools install
+cmake -HThunder/Tools -Bbuild/ThunderTools -DCMAKE_INSTALL_PREFIX=/usr
+make -j4 -C build/ThunderTools && sudo make -C build/ThunderTools install
 
 # Thunder Core
-sudo cmake -HThunder -Bbuild/Thunder -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TYPE=Debug -DBINDING=127.0.0.1 -DPORT=9998
-sudo make -j4 -C build/Thunder && sudo make -C build/Thunder install
+cmake -HThunder -Bbuild/Thunder -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TYPE=Debug -DBINDING=127.0.0.1 -DPORT=9998
+make -j4 -C build/Thunder && sudo make -C build/Thunder install
 ```
 
 Now build Thunder interfaces (do this every time you change `ISamplePlugin.h` or `SamplePlugin.json`)
 ```shell
-sudo cmake -HThunderInterfaces -Bbuild/ThunderInterfaces  -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/ThunderInterfaces && sudo make -C build/ThunderInterfaces install
+cmake -HThunderInterfaces -Bbuild/ThunderInterfaces  -DCMAKE_INSTALL_PREFIX=/usr
+make -j4 -C build/ThunderInterfaces && sudo make -C build/ThunderInterfaces install
 ```
 
 Finally build this repo containing the sample plugin & accompanying client libraries and test apps
 ```
-sudo cmake -HSamplethunderplugin -Bbuild/Samplethunderplugin -DCMAKE_INSTALL_PREFIX=/usr
-sudo make -j4 -C build/Samplethunderplugin && sudo make -C build/Samplethunderplugin install
+cmake -HSamplethunderplugin -Bbuild/Samplethunderplugin -DCMAKE_INSTALL_PREFIX=/usr
+make -j4 -C build/Samplethunderplugin && sudo make -C build/Samplethunderplugin install
 ```
 
 # Usage
@@ -66,8 +68,12 @@ First, start WPEFramework by running `/usr/bin/WPEFramework`. You should see Sam
 [     128978 us] Activated plugin [SamplePlugin]:[SamplePlugin]
 ```
 
+Press `q` to terminate WPEFramework.
+
 ## Enable SamplePlugin tracing
-By default, WPEFramework does not enable tracing for plugins. Enable all trace levels for SamplePlugin by making the following JSON-RPC request
+By default, WPEFramework does not enable tracing for plugins. Enable all trace levels for SamplePlugin by making the following JSON-RPC request.
+
+Note this requires the TraceControl plugin to also be installed (https://github.com/rdkcentral/rdkservices/tree/sprint/2208/TraceControl). Alternatively, trace levels can be set in the `/etc/WPEFramework/config.json` file.
 
 ```
 curl --request POST \
@@ -85,7 +91,7 @@ curl --request POST \
 ```
 
 ## JSON-RPC
-Make the following JSON-RPC request to generate a greeting
+Make the following JSON-RPC request to the sample plugin to generate a greeting
 
 ```
 curl --request POST \
@@ -112,12 +118,13 @@ The plugin should respond with a generated greeting
 }
 ```
 
+You should see the below logs in WPEFramework
+
 ```
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePluginJsonRpc.cpp:47] Information: Incoming JSON-RPC request for greeter method with input params {"message":"world"}
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:150] Information: Generating greeting
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:151] Information: Running in process 36087
 [Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:137] Information: Raising a notification
-You should see the below logs in WPEFramework
 ```
 
 ## COM-RPC
@@ -142,6 +149,8 @@ When running out-of-process, you'll see a new WPEProcess spawned when the plugin
 vagrant    36077  0.0  0.5 618988 21904 pts/1    Sl+  12:00   0:00  |           \_ WPEFramework
 vagrant    37676  0.0  0.3  95684 14360 pts/1    Sl+  12:07   0:00  |               \_ WPEProcess -l libWPEFrameworkSamplePlugin.so -c SamplePlugin -C SamplePlugin -r /tmp/communicator -i 224 -x 5 -p "/root/SamplePlugin/" -s "/usr/lib/wpeframework/plugins/" -d "/usr/share/WPEFramework/SamplePlugin/" -a "/usr/bin/" -v "/tmp/SamplePlugin/" -m "/usr/lib/wpeframework/proxystubs/" -P "/opt/minidumps/" -e 127
 ```
+
+The sampleplugin logging will print the PID of the process it's running in to easily verify if everything is working as expected.
 
 ## Benchmarks
 A benchmarking app is included to analyse the performance of COM-RPC and JSON-RPC

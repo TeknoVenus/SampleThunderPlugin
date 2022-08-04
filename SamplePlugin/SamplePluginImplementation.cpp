@@ -77,6 +77,13 @@ namespace WPEFramework
         }
 
 
+        /**
+         * A simple echo method used for benchmarking. Returns the data it was given
+         * without modification
+         *
+         * @param[in] message   Message to be echo'd
+         * @param[out] result   Echo'd data
+         */
         uint32_t SamplePluginImplementation::Echo(const string &message, string &result /* @out */)
         {
             // Just return exactly what we were sent

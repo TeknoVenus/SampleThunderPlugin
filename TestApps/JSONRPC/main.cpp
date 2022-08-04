@@ -58,7 +58,7 @@ int main(int argc, char const *argv[])
     Handlers::Callbacks testCallback;
 
     printf("Sample JSON-RPC Test App\n");
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:55555")));
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
     auto remoteObject = std::make_unique<JSONRPC::LinkType<Core::JSON::IElement>>("SamplePlugin.1", "");
 
     GreeterParamsData params;
