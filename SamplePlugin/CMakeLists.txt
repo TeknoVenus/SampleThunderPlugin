@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+project(SamplePlugin)
 set(PLUGIN_NAME SamplePlugin)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
@@ -28,7 +28,6 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 # Build the main plugin that runs inside the WPEFramework daemon
 add_library(${MODULE_NAME} SHARED
         SamplePlugin.cpp
-        SamplePluginJsonRpc.cpp
         Module.cpp
 )
 
@@ -61,4 +60,4 @@ install(TARGETS
         lib/${STORAGE_DIRECTORY}/plugins)
 
 
-write_config(${PLUGIN_NAME})
+write_config(PLUGINS ${PLUGIN_NAME})

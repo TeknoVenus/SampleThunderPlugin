@@ -1,11 +1,11 @@
 # Sample Thunder Plugin
-A simple Thunder plugin for experimenting and learning about Thunder.
+A simple Thunder plugin for experimenting and learning about Thunder. **This is designed for use with Thunder R3/4, it will not build on R2 any more**
 
 Has the following features
 * JSON-RPC API
 * COM-RPC API
 * Can run in-process and out-of-process
-* Contains accompanying client library and test application
+* Contains test applications for COM and JSON-RPC
 
 Should not be taken as the "best" way to write a plugin, but as a way of exploring the various ways plugins can be created.
 
@@ -28,8 +28,7 @@ You should end up with a directory structure as below
 
 Be aware RDK is currently using the **R2** branch of Thunder and ThunderInterfaces.
 
-* Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC API we implement
-* Copy the `Interfaces/SamplePlugin.json` schema from this repo to `ThunderInterfaces/jsonrpc`. This is the JSON-RPC API we implement
+* Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC and JSON-RPC API we implement
 * Add a unique ID value for `ID_SAMPLE_PLUGIN` and `ID_SAMPLE_PLUGIN_NOTIFICATION` to `IDs.h` in ThunderInterfaces
 
 Now build Thunder (only need to do this once). In all below instructions, run the commands in the root directory you cloned all the repos into
@@ -46,7 +45,7 @@ cmake -HThunder -Bbuild/Thunder -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TYPE=Debug -
 make -j4 -C build/Thunder && sudo make -C build/Thunder install
 ```
 
-Now build Thunder interfaces (do this every time you change `ISamplePlugin.h` or `SamplePlugin.json`)
+Now build Thunder interfaces (do this every time you change `ISamplePlugin.h`)
 ```shell
 cmake -HThunderInterfaces -Bbuild/ThunderInterfaces  -DCMAKE_INSTALL_PREFIX=/usr
 make -j4 -C build/ThunderInterfaces && sudo make -C build/ThunderInterfaces install
@@ -71,24 +70,9 @@ First, start WPEFramework by running `/usr/bin/WPEFramework`. You should see Sam
 Press `q` to terminate WPEFramework.
 
 ## Enable SamplePlugin tracing
-By default, WPEFramework does not enable tracing for plugins. Enable all trace levels for SamplePlugin by making the following JSON-RPC request.
+By default, WPEFramework does not enable tracing for plugins. Enable all trace levels for SamplePlugin by setting the trace state for `Plugin_SamplePlugin` to enabled.
 
-Note this requires the TraceControl plugin to also be installed (https://github.com/rdkcentral/rdkservices/tree/sprint/2208/TraceControl). Alternatively, trace levels can be set in the `/etc/WPEFramework/config.json` file.
-
-```
-curl --request POST \
-  --url http://localhost:9998/jsonrpc \
-  --header 'Content-Type: application/json' \
-  --data '{
-	"jsonrpc": "2.0",
-	"id": 1234567890,
-	"method": "TraceControl.set",
-	"params": {
-		"module": "Plugin_SamplePlugin",
-		"state": "enabled"
-	}
-}'
-```
+The mechanism for this varies slightly if you are using the older Tracing module in Thunder, or the new Messaging system on R4.
 
 ## JSON-RPC
 Make the following JSON-RPC request to the sample plugin to generate a greeting

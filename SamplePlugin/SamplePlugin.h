@@ -23,9 +23,9 @@
 
 // Include the interface we created
 #include <interfaces/ISamplePlugin.h>
-#include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
 
-#include <mutex>
+// This is the JSON-RPC interface, auto-generated from ISamplePlugin
+#include <interfaces/json/JSamplePlugin.h>
 
 namespace WPEFramework
 {
@@ -39,11 +39,13 @@ namespace WPEFramework
          */
         class SamplePlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC
         {
+        private:
             /**
              * Our notification handling code
              *
              * Handle both the Activate/Deactivate notifications and provide a handler
-             * for notifications raised by the COM-RPC API
+             * for notifications raised by the COM-RPC API if we want to do
+             * something
              */
             class Notification : public RPC::IRemoteConnection::INotification,
                                  public Exchange::ISamplePlugin::INotification
@@ -66,12 +68,13 @@ namespace WPEFramework
             public:
                 void SomethingHappend(const Source event) override
                 {
-                    _parent.SomethingHappend(event);
+                    // Raise the equivalent JSON-RPC notification for this notification
+                    Exchange::JSamplePlugin::Event::SomethingHappend(_parent, event);
                 }
 
                 // The activated/deactived methods are part of the RPC::IRemoteConnection::INotification
                 // interface. These are triggered when Thunder detects a connection/disconnection over the
-                // COM-RPC link.
+                // COM-RPC link. We can choose to take action here or not
                 void Activated(RPC::IRemoteConnection * /* connection */) override
                 {
                 }
@@ -131,18 +134,6 @@ namespace WPEFramework
             // Notification/event handlers
             // Clean up when we're told to deactivate
             void Deactivated(RPC::IRemoteConnection *connection);
-
-            // Our custom event
-            void SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event);
-
-        private:
-            // JSON-RPC setup
-            void RegisterAllMethods();
-            void UnregisterAllMethods();
-
-            // JSON-RPC methods (take JSON in, spit JSON back out)
-            uint32_t Greeter(const GreeterParamsData &params, GreeterResultData &response);
-            uint32_t Echo(const EchoParamsData &params, EchoResultData &response);
 
         private:
             uint32_t _connectionId;

@@ -19,12 +19,10 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "Module.h"
-
 #include <interfaces/ISamplePlugin.h>
 
+#include "SamplePluginConfiguration.h"
 
 namespace WPEFramework
 {
@@ -48,17 +46,26 @@ namespace WPEFramework
             // Implement the main methods from ISamplePlugin
             uint32_t Greet(const string &message, string &result /* @out */) override;
             uint32_t Echo(const string &message, string &result /* @out */) override;
+            uint32_t Configure(PluginHost::IShell* framework) override;
 
         public:
-            // Handle Notification registration/removal
+            // Handle graceful notification registration/removal by clients
             uint32_t Register(ISamplePlugin::INotification *notification) override;
             uint32_t Unregister(ISamplePlugin::INotification *notification) override;
 
         private:
-            std::list<Exchange::ISamplePlugin::INotification *> _notificationCallbacks;
-            std::mutex _notificationMutex;
+            // Utility method to send a notification to all interested clients
+            void RaiseSomethingHappenedNotification(const INotification::Source& eventSource);
 
-            const std::vector<std::string> _greetings;
+        private:
+            std::list<Exchange::ISamplePlugin::INotification *> _notificationCallbacks;
+            SamplePluginConfiguration _config;
+
+            // By using Thunder's CriticalSection, we can get some useful warning reporting
+            // for free for deadlock detection and long held locks
+            Core::CriticalSection _notificationMutex;
+
+            std::vector<std::string> _greetings;
         };
     }
 }

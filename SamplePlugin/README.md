@@ -25,10 +25,3 @@ This is where the real work is done - any business logic for the plugin should l
 If the plugin had to link to any 3rd party libraries, they should link to this implementation library. This way the dependencies are only loaded into WPEProcess and are completely unloaded when WPEProcess exits. More info here: https://wiki.rdkcentral.com/pages/viewpage.action?pageId=198262351
 
 This code must fully implement the COM-RPC API defined in `ISamplePlugin`
-
-### `SamplePluginJsonRpc.cpp`
-This provides the JSON-RPC API for the plugin, and is a thin wrapper around the implementation. The JSON-RPC API is responsible for:
-
-* Validating incoming JSON-RPC requests and their parameters
-* Calling the COM-RPC API (i.e. the actual plugin implementation)
-* Building the JSON response

@@ -16,7 +16,7 @@ Callback triggered! Got greeting Goodbye, World
 ```
 
 ## COMRPC
-Invokes the `Greeter` method over COM-RPC via the `/tmp/communicator` unix socket. Makes use of the client library provided.
+Invokes the `Greeter` method over COM-RPC via the `/tmp/communicator` unix socket.
 
 ```shell
 vagrant@dobby-vagrant-focal:~/srcThunder/build/samplethunderplugin/TestApps/COMRPC$ ./COMRPCTestApp 

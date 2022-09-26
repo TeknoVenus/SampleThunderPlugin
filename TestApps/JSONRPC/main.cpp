@@ -1,91 +1,68 @@
 /**
-* If not stated otherwise in this file or this component's LICENSE
-* file the following copyright and licenses apply:
-*
-* Copyright 2022 RDK Management
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-**/
-
+ * If not stated otherwise in this file or this component's LICENSE
+ * file the following copyright and licenses apply:
+ *
+ * Copyright 2022 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
 
 #include "Module.h"
-
-#include <websocket/websocket.h>
-
-#include <WPEFramework/interfaces/ISamplePlugin.h>
-#include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
-
-#include <stdio.h>
-#include <memory>
-#include <unistd.h>
-
-#include <mutex>
-#include <future>
-#include <functional>
+#include "../Log.h"
+#include <interfaces/json/JsonData_SamplePlugin.h>
 
 using namespace WPEFramework;
 using namespace JsonData::SamplePlugin;
 
-typedef std::function<void(const GreeterResultData &)> CallbackFn;
+#define TIMEOUT_MS 2000
 
-static std::promise<void> promise;
-
-namespace Handlers
+void SomethingHappenedNotification(SomethingHappendParamsData& event)
 {
-    class Callbacks
-    {
-    public:
-        void async_callback_complete(const GreeterResultData &response, const Core::JSONRPC::Error *result)
-        {
-            printf("Callback triggered! Got greeting %s\n", response.Greeting.Value().c_str());
-            promise.set_value();
-        }
-    };
+    string eventData;
+    event.Event.ToString(eventData);
+
+    Log("'Something Happened' notification triggered with event data %s", eventData.c_str());
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char const* argv[])
 {
-    Handlers::Callbacks testCallback;
-
-    printf("Sample JSON-RPC Test App\n");
+    Log("Sample JSON-RPC Test App");
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-    auto remoteObject = std::make_unique<JSONRPC::LinkType<Core::JSON::IElement>>("SamplePlugin.1", "");
 
-    GreeterParamsData params;
-    params.Message = "World";
-    GreeterResultData result;
+    // Establish a connection with Thunder over JSON-RPC websocket
+    // Need to specify the plugin we want to connect to, and an ID for ourselves
+    JSONRPC::SmartLinkType<Core::JSON::IElement> remoteObject(_T("SamplePlugin.1"), _T("jsonrpc.testapp"));
 
-    printf("Calling 'greeter' function synchronously\n");
+    // Subscribe to events
+    remoteObject.Subscribe<SomethingHappendParamsData>(TIMEOUT_MS, "somethinghappend", SomethingHappenedNotification);
 
-    uint32_t status = remoteObject->Invoke<GreeterParamsData, GreeterResultData>(2000, "greeter", params, result);
-    if (status == Core::ERROR_NONE)
-    {
-        printf("Call to SamplePlugin JSON-RPC succeeded\n");
-        printf("Greeting: %s\n", result.Greeting.Value().c_str());
+    if (!remoteObject.IsActivated()) {
+        Log("SamplePlugin not activated");
+    } else {
+        Log("Calling 'SamplePlugin.1.Greeter' method");
+
+        GreetParamsData params;
+        params.Message = "World";
+        Core::JSON::String result;
+
+        uint32_t status = remoteObject.Invoke<GreetParamsData, Core::JSON::String>(TIMEOUT_MS, "greeter", params, result);
+
+        if (status == Core::ERROR_NONE) {
+            Log("Call to SamplePlugin JSON-RPC succeeded. Greeting: %s", result.Value().c_str());
+        } else {
+            Log("Error %u (%s)", status, Core::ErrorToString(status));
+        }
     }
-    else
-    {
-        printf("Error %u (%s)\n", status, Core::ErrorToString(status));
-        return 1;
-    }
 
-    printf("Calling 'greeter' function asynchronously\n");
-
-    std::future<void> future = promise.get_future();
-    remoteObject->Dispatch<GreeterParamsData>(30000, "greeter", params, &Handlers::Callbacks::async_callback_complete, &testCallback);
-
-    printf("Waiting for callback\n");
-    future.wait();
-
-    return 0;
+    return EXIT_SUCCESS;
 }

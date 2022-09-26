@@ -58,9 +58,8 @@ namespace WPEFramework
             ASSERT(_service == nullptr);
             ASSERT(_samplePlugin == nullptr);
 
-            // Syslog Startup messages are always printed by default
-            SYSLOG(Logging::Startup, (_T("Initializing SamplePlugin")));
-            SYSLOG(Logging::Startup, (_T("Initialize running in process %d"), Core::ProcessInfo().Id()));
+            TRACE(Trace::Initialisation, (_T("Initializing SamplePlugin - running in process %d"), Core::ProcessInfo().Id()));
+            TRACE(Trace::Fatal, (_T("Foo")));
 
             // Register the Connection::Notification first. Do this before we start our actual plugin
             // in case something goes wrong or is disconnected - this way we know we're at least registered
@@ -68,21 +67,26 @@ namespace WPEFramework
             _service = service;
             _service->Register(&_notification);
 
-            // Register ourselves in the PluginHost so other plugins know where to find us
+            // Register ourselves in the PluginHost so other plugins know where to find us and we resolve our plugins "real" interface
             // If we are running out of process (as per our config file), this is what will actually spawn the WPEProcess process
             // which will run our plugin instance
             //
-            // Ideally for large, complex plugins we would actually split the plugin into two libraries - a thin library that just calls
+            // For large, complex plugins the plugin should be split the plugin into two libraries - a thin library that essentially just calls
             // _service->Root to launch WPEProcess, and a larger library that is only ever run inside WPEProcess only (we do this for Cobalt and WebKitBrowser)
+            // and holds all the useful business logic
             _samplePlugin = service->Root<Exchange::ISamplePlugin>(_connectionId, 2000, _T("SamplePluginImplementation"));
 
-            // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
+            // Still running inside the main WPEFramework process - the WPEProcess process will have now been spawned and registered if necessary
             if (_samplePlugin != nullptr)
             {
+                // Configure the plugin
+                _samplePlugin->Configure(service);
+
+                // Hook up notifications
                 _samplePlugin->Register(&_notification);
 
                 // Register all our JSON-RPC methods
-                RegisterAllMethods();
+                Exchange::JSamplePlugin::Register(*this, _samplePlugin);
             }
             else
             {
@@ -109,17 +113,13 @@ namespace WPEFramework
             ASSERT(_service == service);
             ASSERT(_samplePlugin != nullptr);
 
-            TRACE(Trace::Information, (_T("Deinitializing SamplePlugin")));
-            TRACE(Trace::Information, (_T("Deinitialize running in process %d"), Core::ProcessInfo().Id()));
+            TRACE(Trace::Information, (_T("Deinitializing SamplePlugin running in process %d"), Core::ProcessInfo().Id()));
 
             if (_samplePlugin != nullptr)
             {
-                // TODO:: Work out exactly what triggers the shutdown of the out-of-process host
                 _service->Unregister(&_notification);
-                _samplePlugin->Unregister(&_notification);
 
-                // Unregister all our JSON-RPC methods
-                UnregisterAllMethods();
+                _samplePlugin->Unregister(&_notification);
                 _samplePlugin->Release();
             }
 
@@ -145,20 +145,6 @@ namespace WPEFramework
                 ASSERT(_service != nullptr);
                 Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
             }
-        }
-
-        /**
-         * Our notification handler
-         *
-         * This will run inside the main WPEFramework process, but will be called from the COM-RPC side
-         * of the plugin
-         *
-         * Use this to raise a JSONRPC notification
-         */
-        void SamplePlugin::SomethingHappend(const Exchange::ISamplePlugin::INotification::Source event)
-        {
-            // A notification occurred on the COM-RPC side of the plugin
-            TRACE(Trace::Information, (_T("Handled a notification in process %d"), Core::ProcessInfo().Id()));
         }
     }
 }

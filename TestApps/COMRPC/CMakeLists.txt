@@ -15,19 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 project(COMRPCTestApp)
+
+find_package(${NAMESPACE}Core REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
 # Build simple test app to exercise client library
 add_executable(${PROJECT_NAME}
         Module.cpp
         main.cpp
+        SamplePluginLink.cpp
 )
 
-# Only need to link to client lib, will bring in dependencies automatically
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
-        SamplePluginClientLib
+        ${NAMESPACE}Core::${NAMESPACE}Core
+        ${NAMESPACE}COM::${NAMESPACE}COM
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

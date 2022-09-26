@@ -17,7 +17,11 @@
 
 project(JSONRPCTestApp)
 
-find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(${NAMESPACE}Core REQUIRED)
+find_package(${NAMESPACE}WebSocket REQUIRED)
+find_package(${NAMESPACE}Cryptalgo REQUIRED)
+find_package(${NAMESPACE}Messaging REQUIRED)
+
 
 # Build simple test app
 add_executable(${PROJECT_NAME}
@@ -28,7 +32,10 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         ${NAMESPACE}Core::${NAMESPACE}Core
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+        ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
+        ${NAMESPACE}Cryptalgo::${NAMESPACE}Cryptalgo
+        # I have no idea why I have to link to Messaging here, but it won't compile if I don't!
+        ${NAMESPACE}Messaging::${NAMESPACE}Messaging
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
