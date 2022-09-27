@@ -24,15 +24,14 @@
 #include "messages.h"
 
 #include "Module.h"
-#include <interfaces/ISamplePlugin.h>
-#include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
+#include <interfaces/json/JsonData_SamplePlugin.h>
 
 using namespace WPEFramework;
 using namespace JsonData::SamplePlugin;
 
 void JsonRpcFixture::SetUp(const ::benchmark::State &state)
 {
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:55555")));
     mRemoteObject = std::make_unique<JSONRPC::LinkType<Core::JSON::IElement>>("SamplePlugin.1", "");
 }
 
@@ -68,11 +67,11 @@ void JsonRpcFixture::Echo1M(::benchmark::State &state)
 
 void JsonRpcFixture::DoEcho(::benchmark::State &state, const std::string &msg)
 {
-    EchoResultData result;
+    Core::JSON::String result;
     EchoParamsData params;
     params.Data = msg;
 
-    uint32_t success = mRemoteObject->Invoke<EchoParamsData, EchoResultData>(20000, "echo", params, result);
+    uint32_t success = mRemoteObject->Invoke<EchoParamsData, Core::JSON::String>(20000, "echo", params, result);
 
     if (success != Core::ERROR_NONE)
     {

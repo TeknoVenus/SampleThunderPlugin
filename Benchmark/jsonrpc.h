@@ -22,8 +22,7 @@
 #include <benchmark/benchmark.h>
 
 #include "Module.h"
-#include <interfaces/ISamplePlugin.h>
-#include <WPEFramework/interfaces/json/JsonData_SamplePlugin.h>
+#include <interfaces/json/JsonData_SamplePlugin.h>
 #include <memory.h>
 
 using namespace WPEFramework;

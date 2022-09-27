@@ -20,7 +20,9 @@ set(PLUGIN_NAME SamplePlugin)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
+#find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
 
 # Build two libraries to make it obvious what is running in and out of process
 # https://wiki.rdkcentral.com/pages/viewpage.action?pageId=198262351
@@ -34,6 +36,7 @@ add_library(${MODULE_NAME} SHARED
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
 )
 
 install(TARGETS

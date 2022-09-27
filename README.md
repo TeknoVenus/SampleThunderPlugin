@@ -1,5 +1,5 @@
 # Sample Thunder Plugin
-A simple Thunder plugin for experimenting and learning about Thunder. **This is designed for use with Thunder R3/4, it will not build on R2 any more**
+A simple Thunder plugin for experimenting and learning about Thunder. **This is designed for use with Thunder R3/4, it will not build on R2 (version currently used in RDK) any more**
 
 Has the following features
 * JSON-RPC API
@@ -7,10 +7,10 @@ Has the following features
 * Can run in-process and out-of-process
 * Contains test applications for COM and JSON-RPC
 
-Should not be taken as the "best" way to write a plugin, but as a way of exploring the various ways plugins can be created.
-
 # Build
-Set up a build environment that can build Thunder. This requires the following Thunder repos:
+Set up a build environment that can build Thunder. You can do this manually following the steps below, or use [Thunder KickStart](https://github.com/WebPlatformForEmbedded/ThunderKickStart/)
+
+This requires cloning the following Thunder repos:
 
 * Thunder
 * ThunderInterfaces
@@ -25,8 +25,6 @@ You should end up with a directory structure as below
 ├── Thunder
 ├── ThunderInterfaces
 ```
-
-Be aware RDK is currently using the **R2** branch of Thunder and ThunderInterfaces.
 
 * Copy the `Interfaces/ISamplePlugin.h` interface from this repo to `ThunderInterfaces/interfaces`. This is the COM-RPC and JSON-RPC API we implement
 * Add a unique ID value for `ID_SAMPLE_PLUGIN` and `ID_SAMPLE_PLUGIN_NOTIFICATION` to `IDs.h` in ThunderInterfaces

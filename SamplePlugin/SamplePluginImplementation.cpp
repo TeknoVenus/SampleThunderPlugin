@@ -19,15 +19,15 @@
 
 #include "SamplePluginImplementation.h"
 
-#include <random>
-
 namespace WPEFramework {
 namespace Plugin {
+    // Don't use metadata here, use the normal service registration
     SERVICE_REGISTRATION(SamplePluginImplementation, 1, 0);
 
     SamplePluginImplementation::SamplePluginImplementation()
         : _notificationCallbacks({})
         , _greetings({})
+        , _rng(_randomDevice())
     {
     }
 
@@ -42,20 +42,16 @@ namespace Plugin {
      */
     uint32_t SamplePluginImplementation::Configure(PluginHost::IShell* framework)
     {
-    
-        TRACE(Trace::Information, (_T("Config: %s"), framework->ConfigLine().c_str()));
         _config.FromString(framework->ConfigLine());
 
-
         // Add all the greetings in the config to our list of greetings
-
         if (_config.Greetings.IsSet() && !_config.Greetings.IsNull()) {
-
-        auto it = _config.Greetings.Elements();
-        while (it.Next()) {
-            TRACE(Trace::Information, (_T("Adding greeting %s"), it.Current().Value().c_str()));
-            _greetings.emplace_back(it.Current().Value());
-        }
+            auto it = _config.Greetings.Elements();
+            while (it.Next()) {
+                _greetings.emplace_back(it.Current().Value());
+            }
+        } else {
+            TRACE(Trace::Warning, (_T("No greetings configured")));
         }
 
         return Core::ERROR_NONE;
@@ -72,29 +68,30 @@ namespace Plugin {
      * @param[in] message   Who the greeting is for
      * @param[out] result   The generated greeting
      */
-    uint32_t SamplePluginImplementation::Greet(const string& message, string& result /* @out */)
+    uint32_t SamplePluginImplementation::Greet(const string& message, string& result)
     {
-        TRACE(Trace::Information, (_T("Generating greeting")));
-        TRACE(Trace::Information, (_T("Running in process %d"), Core::ProcessInfo().Id()));
-
         uint32_t success = Core::ERROR_NONE;
 
-        if (_greetings.size() == 0) {
-            TRACE(Trace::Fatal, (_T("No greetings configured - cannot generate greeting!")));
-            success = Core::ERROR_INCOMPLETE_CONFIG;
+        if (message.empty()) {
+            TRACE(Trace::Warning, (_T("Message is required")));
+            success = Core::ERROR_BAD_REQUEST;
         } else {
-            // Pick a random greeting from the pre-determined list
-            std::random_device dev;
-            std::mt19937 rng(dev());
-            std::uniform_int_distribution<std::mt19937::result_type> distribution(0, _greetings.size() - 1);
+            if (_greetings.size() != 0) {
+                TRACE(Trace::Information, (_T("Generating greeting in process %d"), Core::ProcessInfo().Id()));
+                // Pick a random greeting from the ones in our config file
+                std::uniform_int_distribution<std::mt19937::result_type> distribution(0, _greetings.size() - 1);
 
-            std::string greeting = _greetings[distribution(rng)];
+                string greeting = _greetings[distribution(_rng)];
 
-            // Build the final message
-            result = greeting + ", " + message;
+                // Build the final message
+                result = greeting + ", " + message;
 
-            // Send out a notification that we generated a greeting
-            RaiseSomethingHappenedNotification(INotification::Source::EXCITING_THING_HAPPENED);
+                // Send out a notification that we generated a greeting
+                RaiseSomethingHappenedNotification(INotification::Source::EXCITING_THING_HAPPENED);
+            } else {
+                TRACE(Trace::Fatal, (_T("No greetings configured - cannot generate greeting!")));
+                success = Core::ERROR_INCOMPLETE_CONFIG;
+            }
         }
 
         return success;
@@ -107,9 +104,9 @@ namespace Plugin {
      * @param[in] message   Message to be echo'd
      * @param[out] result   Echo'd data
      */
-    uint32_t SamplePluginImplementation::Echo(const string& message, string& result /* @out */)
+    uint32_t SamplePluginImplementation::Echo(const string& message, string& result)
     {
-        // Just return exactly what we were sent
+        // Just return exactly what we were sent - even if it's empty
         result = message;
 
         // All good - return success
@@ -125,7 +122,6 @@ namespace Plugin {
 
         // Make sure we can't register the same notification callback multiple times
         if (std::find(_notificationCallbacks.begin(), _notificationCallbacks.end(), notification) == _notificationCallbacks.end()) {
-            TRACE(Trace::Information, (_T("Added a callback")));
             _notificationCallbacks.push_back(notification);
             notification->AddRef();
         }

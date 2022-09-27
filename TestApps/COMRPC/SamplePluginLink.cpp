@@ -27,7 +27,7 @@ SamplePluginLink::SamplePluginLink(const string& callsign)
     } else {
         // For this example, show how to acquire another interface provided by the plugin. In this case,
         // acquire the shell so we can send activate/deactive commands from the client
-        // TODO:: Is this safe to do here? What happens in non-happy-day scenarios with this interface?
+        // TODO:: Is this safe to do here? What happens in non-happy-day scenarios with this interface - do we need to re-acquire it?
         _samplePluginShell = BaseClass::Aquire<PluginHost::IShell>(RPC::CommunicationTimeOut, BaseClass::Connector(), _callsign);
 
         if (_samplePluginShell == nullptr) {

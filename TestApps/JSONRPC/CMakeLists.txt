@@ -18,8 +18,8 @@
 project(JSONRPCTestApp)
 
 find_package(${NAMESPACE}Core REQUIRED)
-find_package(${NAMESPACE}WebSocket REQUIRED)
 find_package(${NAMESPACE}Cryptalgo REQUIRED)
+find_package(${NAMESPACE}WebSocket REQUIRED)
 find_package(${NAMESPACE}Messaging REQUIRED)
 
 
@@ -33,7 +33,6 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE
         ${NAMESPACE}Core::${NAMESPACE}Core
         ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
-        ${NAMESPACE}Cryptalgo::${NAMESPACE}Cryptalgo
         # I have no idea why I have to link to Messaging here, but it won't compile if I don't!
         ${NAMESPACE}Messaging::${NAMESPACE}Messaging
 )

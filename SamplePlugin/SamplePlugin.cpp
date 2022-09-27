@@ -25,10 +25,17 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        const short SamplePlugin::API_VERSION_NUMBER_MAJOR = 1;
-        const short SamplePlugin::API_VERSION_NUMBER_MINOR = 0;
-
-        SERVICE_REGISTRATION(SamplePlugin, SamplePlugin::API_VERSION_NUMBER_MAJOR, SamplePlugin::API_VERSION_NUMBER_MINOR);
+        // This replaces SERVICE_REGISTRATION for IPlugin's only
+        static Metadata<SamplePlugin> metadata(
+            // Version
+            1, 0, 0,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
 
         SamplePlugin::SamplePlugin()
             : _connectionId(0),
@@ -59,7 +66,6 @@ namespace WPEFramework
             ASSERT(_samplePlugin == nullptr);
 
             TRACE(Trace::Initialisation, (_T("Initializing SamplePlugin - running in process %d"), Core::ProcessInfo().Id()));
-            TRACE(Trace::Fatal, (_T("Foo")));
 
             // Register the Connection::Notification first. Do this before we start our actual plugin
             // in case something goes wrong or is disconnected - this way we know we're at least registered

@@ -18,8 +18,11 @@ project(Benchmark)
 
 find_package(benchmark REQUIRED)
 
-find_package(WPEFrameworkProtocols REQUIRED)
+find_package(WPEFrameworkCOM REQUIRED)
 find_package(WPEFrameworkCore REQUIRED)
+find_package(WPEFrameworkCryptalgo REQUIRED)
+find_package(WPEFrameworkWebSocket REQUIRED)
+find_package(WPEFrameworkMessaging REQUIRED)
 
 
 add_executable(${PROJECT_NAME}
@@ -33,7 +36,10 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     benchmark::benchmark
     WPEFrameworkCore::WPEFrameworkCore
-    WPEFrameworkProtocols::WPEFrameworkProtocols
+    WPEFrameworkCOM::WPEFrameworkCOM
+    WPEFrameworkCryptalgo::WPEFrameworkCryptalgo
+    WPEFrameworkWebSocket::WPEFrameworkWebSocket
+    WPEFrameworkMessaging::WPEFrameworkMessaging
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
