@@ -23,8 +23,45 @@
 // Our auto-generated JSON objects
 #include <interfaces/json/JsonData_SamplePlugin.h>
 
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+
 using namespace WPEFramework;
 using namespace JsonData::SamplePlugin;
+
+using SmartLink = JSONRPC::SmartLinkType<Core::JSON::IElement>;
+
+class SamplePluginLink : public SmartLink {
+public:
+    SamplePluginLink(const string& callsign, const TCHAR* clientId)
+        : SmartLink(callsign, clientId)
+    {
+    }
+    ~SamplePluginLink() = default;
+    SamplePluginLink(const SamplePluginLink&) = delete;
+    SamplePluginLink& operator=(const SamplePluginLink&) = delete;
+
+    void StateChange() override
+    {
+        _establishedCondition.notify_one();
+    }
+
+    /**
+     * Block and wait for the JSON-RPC link to be
+     * established with Thunder
+     */
+    bool WaitForLinkEstablish(int timeoutMs)
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        auto result = _establishedCondition.wait_for(lock, std::chrono::milliseconds(timeoutMs));
+        return result != std::cv_status::timeout;
+    }
+
+private:
+    std::mutex _lock;
+    std::condition_variable _establishedCondition;
+};
 
 int main(int argc, char const* argv[])
 {
@@ -32,30 +69,29 @@ int main(int argc, char const* argv[])
         Log("Sample JSON-RPC Test App");
         Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:55555")));
 
-        JSONRPC::SmartLinkType<Core::JSON::IElement> remoteObject(_T("SamplePlugin.1"), _T("client.jsonrpc.2"));
+        SamplePluginLink remoteObject(_T("SamplePlugin.1"), _T("client.jsonrpc.2"));
 
-        // SmartLink ctor will query Controller for the status of the plugin and subscribe for the statechange
-        // event. That all happens async and there's currently no easy way to know when this has completed
-        // so for now add a sleep before we check if the plugin is activated
-        SleepS(2);
+        if (remoteObject.WaitForLinkEstablish(2000)) {
+            if (remoteObject.IsActivated()) {
+                Log("SamplePlugin is activated");
 
-        if (remoteObject.IsActivated()) {
-            Log("SamplePlugin is activated");
+                GreetParamsData params;
+                params.Message = "World";
+                Core::JSON::String result;
 
-            GreetParamsData params;
-            params.Message = "World";
-            Core::JSON::String result;
+                // Call the greeter method
+                auto success = remoteObject.Invoke<GreetParamsData, Core::JSON::String>(5000, "greet", params, result);
 
-            // Call the greeter method
-            auto success = remoteObject.Invoke<GreetParamsData, Core::JSON::String>(5000, "greet", params, result);
-
-            if (success == Core::ERROR_NONE) {
-                Log("Successfully generated greeting: %s", result.Value().c_str());
+                if (success == Core::ERROR_NONE) {
+                    Log("Successfully generated greeting: %s", result.Value().c_str());
+                } else {
+                    Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
+                }
             } else {
-                Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
+                Log("SamplePlugin is deactivated");
             }
         } else {
-            Log("SamplePlugin is deactivated");
+            Log("Timeout waiting for link to establish");
         }
     }
 
