@@ -26,6 +26,9 @@
 
     The requirement to make an interface a COMRPC interface is that it should inherit
     from Core::IUnknown
+
+    Documentation for the tags used in these interfaces can be found here:
+    https://github.com/rdkcentral/Thunder/blob/master/Tools/doc/TagDescription.md
 */
 
 namespace WPEFramework {
@@ -51,19 +54,26 @@ namespace Exchange {
                 ID = ID_SAMPLE_PLUGIN_NOTIFICATION
             };
 
-            // The events the plugin can raise
+            // @brief The events the plugin can raise
             enum Source : uint8_t {
                 EXCITING_THING_HAPPENED,
                 BORING_THING_HAPPENED
             };
 
-            // Notifications that clients can subscribe to
+            // @brief A generic example notification
             virtual void SomethingHappend(const Source event) = 0;
         };
 
         // Allow clients to register/unregister from our notifications
+        /* @brief Register for notifications from the sample plugin */
         virtual uint32_t Register(ISamplePlugin::INotification* notification) = 0;
+
+        /* @brief Unregister for notifications from the sample plugin */
         virtual uint32_t Unregister(ISamplePlugin::INotification* notification) = 0;
+
+        /* @json:omit */
+        /* @brief Allow the plugin to read its configuration data */
+        virtual uint32_t Configure(PluginHost::IShell* framework) = 0;
     };
 }
 }
