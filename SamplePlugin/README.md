@@ -8,11 +8,14 @@ The plugin is split into two libraries - `libWPEFrameworkSamplePlugin.so` and `l
 All Thunder plugins must have a `Module.cpp`/`Module.h` file. This includes a number of necessary header files, defines the module name (used for trace control) and sets the build reference (i.e. git hash the plugin was built from)
 
 ### `SamplePlugin.config`
-Configuration for the plugin - change settings such as whether the plugin runs in or out of process.
-
-It is possible for plugins to create their own config options, which can be useful to change plugin settings based on the needs of the platform.
+Configuration for the plugin - change settings such as whether the plugin runs in or out of process. This configuration contains an array of greetings the plugin can choose from to generate a custom greeting message.
 
 This config file is converted into a JSON file during configure time.
+
+### `SamplePluginConfiguration.h`
+A JSON object that represents the custom configuration for this plugin.
+
+When the plugin is loaded, the config file is read from disk and stored in this object so it can be read by the plugin code
 
 ### `SamplePlugin.cpp`/`SamplePlugin.h`
 This is the code plugin code that is loaded by WPEFramework. It implements the `IPlugin` and `IDispatcher` interfaces, and provides the `Initialize()` and `Deinitialize()` methods called by Thunder when activating/deactivating the plugin.
@@ -24,4 +27,4 @@ This is where the real work is done - any business logic for the plugin should l
 
 If the plugin had to link to any 3rd party libraries, they should link to this implementation library. This way the dependencies are only loaded into WPEProcess and are completely unloaded when WPEProcess exits. More info here: https://wiki.rdkcentral.com/pages/viewpage.action?pageId=198262351
 
-This code must fully implement the COM-RPC API defined in `ISamplePlugin`
+This code is a concrete implementation of the API defined in the `ISamplePlugin` interface

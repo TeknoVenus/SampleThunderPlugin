@@ -32,7 +32,7 @@ During configure time, Thunder will generate Proxy Stubs for every COM-RPC inter
 ## Interface Registration
 Plugins that implement a COM-RPC interface must build an interface map to ensure Thunder is aware of the implemented interfaces.
 
-```c++
+```cpp
 BEGIN_INTERFACE_MAP(SamplePlugin)
 INTERFACE_ENTRY(PluginHost::IPlugin)
 INTERFACE_ENTRY(PluginHost::IDispatcher)
@@ -42,7 +42,7 @@ END_INTERFACE_MAP
 
 If the interface is realised in a seperate class/library, this can be done with an aggregate
 
-```c++
+```cpp
 BEGIN_INTERFACE_MAP(SamplePlugin)
 INTERFACE_ENTRY(PluginHost::IPlugin)
 INTERFACE_ENTRY(PluginHost::IDispatcher)
@@ -55,7 +55,7 @@ Here SamplePlugin implements the IPlugin, IDispatcher (necessary for JSON-RPC su
 ### Plugin Initialization
 During the plugin initialization, the plugin must announce it's interfaces to signal to Thunder that it has started and the interfaces can be queried
 
-```c++
+```cpp
 service->Root<Exchange::ISamplePlugin>(_connectionId, 2000, _T("SamplePlugin"));
 ```
 
@@ -107,5 +107,22 @@ On the client side, the client should provide their own implementation of the IN
 # COM-RPC and JSON-RPC co-existence
 It is possible (and encouraged!) for COM-RPC and JSON-RPC interfaces to co-exist in order to get the best of both worlds - easy integration and testing for web-based applications and general use and performant native interfaces for C/C++ applications.
 
-If a plugin realises a COM-RPC interface, then a JSON-RPC wrapper can be created around that interface. This wrapper is responsible for very little other than validating the incoming JSON, calling the COM-RPC API then building up a JSON result.
+This can easily be achieved by adding the `@json` annotation to the COM-RPC interface. When added, the generator tools will automatically build a JSON-RPC representation of the COM-RPC interface as `J<InterfaceName>`. E.G `ISamplePlugin` -> `JSamplePlugin`. All types will be built into JSON types too.
 
+This JSON-RPC interface can then be registered, which will automatically register all the necessary JSON-RPC handlers
+```cpp
+// Register all our JSON-RPC methods
+Exchange::JSamplePlugin::Register(*this, _samplePlugin);
+```
+
+## JSON-RPC Notifications
+By registering the JSON interface as above, we also get JSON-RPC notification support automatically.
+
+Simply call the `Event` implementation when the COM-RPC notification is raised in your INotification implementation. E.G
+```cpp
+void SomethingHappend(const Source event) override
+{
+    // Raise the equivalent JSON-RPC notification for this notification
+    Exchange::JSamplePlugin::Event::SomethingHappend(_parent, event);
+}
+```

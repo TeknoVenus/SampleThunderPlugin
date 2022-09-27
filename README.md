@@ -56,14 +56,7 @@ make -j4 -C build/Samplethunderplugin && sudo make -C build/Samplethunderplugin 
 ```
 
 # Usage
-First, start WPEFramework by running `/usr/bin/WPEFramework`. You should see SamplePlugin autostart
-
-```
-[     116698 us] Activating plugin [SamplePlugin]:[SamplePlugin]
-[     117632 us] Initializing SamplePlugin
-[     117668 us] Initialize running in process 36077
-[     128978 us] Activated plugin [SamplePlugin]:[SamplePlugin]
-```
+First, start WPEFramework by running `/usr/bin/WPEFramework`. You should see SamplePlugin autostart.
 
 Press `q` to terminate WPEFramework.
 
@@ -72,19 +65,21 @@ By default, WPEFramework does not enable tracing for plugins. Enable all trace l
 
 The mechanism for this varies slightly if you are using the older Tracing module in Thunder, or the new Messaging system on R4.
 
+Note that tracing won't appear if you don't have the TraceControl or MessagingControl plugin also installed and activated in Thunder.
+
 ## JSON-RPC
 Make the following JSON-RPC request to the sample plugin to generate a greeting
 
 ```
 curl --request POST \
-  --url http://localhost:9998/jsonrpc \
+  --url http://127.0.0.1:55555/jsonrpc \
   --header 'Content-Type: application/json' \
   --data '{
 	"jsonrpc": "2.0",
-	"id": 1234567890,
-	"method": "SamplePlugin.greeter",
+	"id": 4,
+	"method": "SamplePlugin.greet",
 	"params": {
-		"message": "world"
+		"message": "World"
 	}
 }'
 ```
@@ -92,36 +87,28 @@ The plugin should respond with a generated greeting
 ```json
 {
 	"jsonrpc": "2.0",
-	"id": 1234567890,
-	"result": {
-		"greeting": "Hello, world",
-		"success": true
+	"id": 4,
+	"result": "Good Morning, World"
+}
+```
+
+If there is an error, it will be returned as per the JSON-RPC spec
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 4,
+	"error": {
+		"code": 30,
+		"message": "ERROR_BAD_REQUEST"
 	}
 }
 ```
 
-You should see the below logs in WPEFramework
-
-```
-[Mon, 25 Apr 2022 12:03:40 ]:[SamplePluginJsonRpc.cpp:47] Information: Incoming JSON-RPC request for greeter method with input params {"message":"world"}
-[Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:150] Information: Generating greeting
-[Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:151] Information: Running in process 36087
-[Mon, 25 Apr 2022 12:03:40 ]:[SamplePlugin.cpp:137] Information: Raising a notification
-```
+You can also use the JSONRPC test app included in the repo to see how to make requests from C++ code.
 
 ## COM-RPC
-To test COM-RPC, use the test client and accompanying example C++ library.
-
-For test purposes, the test client will activate & deactivate the plugin when it starts/exits respectively.
-
-```shell
-vagrant@dobby-vagrant-focal:~/srcThunder/build/samplethunderplugin/TestApps/COMRPC$ ./COMRPCTestApp 
-[main.cpp:6](main): Starting SamplePluginClient
-[main.cpp:7](main): Constructing SamplePlugin Client Library. . .
-[SamplePluginClient.cpp:49](SamplePluginClient): Connecting to Thunder @ '/tmp/communicator'
-[SamplePluginClient.cpp:21](SomethingHappend): Received an exciting notification!
-[main.cpp:16](main): Generated greeting - Hello, Foobar
-```
+To test COM-RPC, use the test client. For test purposes, the test client will activate & deactivate the plugin when it starts/exits respectively.
 
 ## Switch between In-Process and Out-Of-Process execution
 To change if the plugin runs in or out-of-process, edit the `SamplePlugin.config` file in `Samplethunderplugin/SamplePlugin/SamplePlugin.config` and rebuild. Then restart WPEFramework.
