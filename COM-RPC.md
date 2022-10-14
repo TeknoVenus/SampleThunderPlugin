@@ -75,7 +75,7 @@ If the plugin is out-of-process
 * Wait for WPEProcess to send an announcement message over COM-RPC that it has started
 
 # Important Note for Out-Of-Process Plugins
-It may not be obvious, but when a plugin runs out of process, the plugin library is actually loaded in two places:
+It may not be obvious, but when a plugin runs out of process, by default the plugin library is actually loaded in two places:
 
 * Inside WPEFramework daemon
   * Initialize() and Deinitialize() run inside the main daemon
@@ -86,7 +86,7 @@ It may not be obvious, but when a plugin runs out of process, the plugin library
     * This loads the plugin again and registers the plugin's COM-RPC interface
     * Any calls over COM-RPC will be executed in this process
 
-As a result, it is important to ensure all work is performed behind the COM-RPC interface, since the goal is for all work to be done in the out-of-process portion of the plugin. Any JSONRPC APIs should ideally be wrappers around the COM-RPC interfaces.
+As a result, it is important to ensure all work is performed behind the COM-RPC interface, since the goal is for all work to be done in the out-of-process portion of the plugin.
 
 It is possible to split a plugin into two libraries (e.g `SamplePlugin.so` and `SamplePluginImplementation.so`), so that the main library is loaded inside WPEFramework and the second library is loaded in WPEProcess only. This is something Liberty Global are implementing for their Thunder deployment https://wiki.rdkcentral.com/pages/viewpage.action?pageId=198262351
 
@@ -134,4 +134,4 @@ If using a custom COM-RPC server, you can provide the interfaces you wish to exp
 
 Note by default the interfaces will still be available on /tmp/communicator (since this will be used to answer JSON-RPC method calls coming in from the Thunder daemon).
 
-In this repo, an example of this is provided and can be abled by setting the appropriate option in the plugin config file.
+In this repo, an example of this is provided and can be abled by setting the appropriate option in the plugin config file. Be aware this implementation will always spawn the COM-RPC server inside the WPEFramework process, but it could be easily modified to keep the server completely isolated in the out-of-process component of the plugin (move the creation of the server from `SamplePlugin` to `SamplePluginImplementation`)
