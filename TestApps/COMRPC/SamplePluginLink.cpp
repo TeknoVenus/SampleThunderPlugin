@@ -14,7 +14,6 @@ void SamplePluginLink::NotificationHandler::SomethingHappend(const Source event)
 SamplePluginLink::SamplePluginLink(const string& callsign, const string& socketPath /*= ""*/)
     : _callsign(callsign)
     , _samplePluginInterface(nullptr)
-    //, _samplePluginShell(nullptr)
     , _notificationHandler()
 {
     Log("Constructing SamplePlugin link to callsign %s", _callsign.c_str());
@@ -46,11 +45,6 @@ SamplePluginLink::~SamplePluginLink()
         _samplePluginInterface->Release();
         _samplePluginInterface = nullptr;
     }
-
-    // if (_samplePluginShell != nullptr) {
-    //     _samplePluginShell->Release();
-    //     _samplePluginShell = nullptr;
-    // }
 }
 
 /**
