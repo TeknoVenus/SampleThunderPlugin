@@ -22,6 +22,7 @@ set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
 # Build two libraries to make it obvious what is running in and out of process
 # https://wiki.rdkcentral.com/pages/viewpage.action?pageId=198262351
@@ -29,6 +30,7 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 # Build the main plugin that runs inside the WPEFramework daemon
 add_library(${MODULE_NAME} SHARED
         SamplePlugin.cpp
+        ComRpcServer.cpp
         Module.cpp
 )
 
@@ -36,6 +38,7 @@ target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${NAMESPACE}COM::${NAMESPACE}COM
 )
 
 install(TARGETS

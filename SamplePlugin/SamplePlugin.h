@@ -27,6 +27,8 @@
 // This is the JSON-RPC interface, auto-generated from ISamplePlugin
 #include <interfaces/json/JSamplePlugin.h>
 
+#include "ComRpcServer.h"
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -140,6 +142,10 @@ namespace WPEFramework
             PluginHost::IShell *_service;
             Exchange::ISamplePlugin *_samplePlugin;
             Core::Sink<Notification> _notification;
+
+            // If set in the config, we should host our own COM-RPC server
+            ComRpcServer* _rpcServer;
+            Core::ProxyType<RPC::InvokeServer> _rpcEngine;
         };
     }
 }

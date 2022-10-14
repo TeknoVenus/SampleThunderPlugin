@@ -21,6 +21,7 @@
 
 #include "Module.h"
 #include "SamplePluginConfiguration.h"
+#include "ComRpcServer.h"
 
 #include <interfaces/ISamplePlugin.h>
 #include <random>

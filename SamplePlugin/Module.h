@@ -27,6 +27,8 @@
 
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
+#include <core/core.h>
+#include <com/com.h>
 
 #undef EXTERNAL
 #define EXTERNAL

@@ -45,7 +45,9 @@ int main(int argc, char const* argv[])
      */
 
     {
-        SamplePluginLink samplePluginLink("SamplePlugin");
+        // For demo purposes, connect over our custom COM-RPC server
+        // The socket path is optional, if not provided will default to /tmp/communicator
+        SamplePluginLink samplePluginLink("SamplePlugin", "/tmp/SamplePlugin");
 
         // Activate the plugin if it's not already
         if (samplePluginLink.GetState() == PluginHost::IShell::state::DEACTIVATED) {
@@ -69,16 +71,6 @@ int main(int argc, char const* argv[])
             Log("Generated greeting %s", result.c_str());
         } else {
             Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
-        }
-
-        // Now deactivate the plugin
-        Log("Deactivating plugin");
-        success = samplePluginLink.Deactivate();
-
-        if (success != Core::ERROR_NONE) {
-            Log("Failed to deactivate the plugin with error code %s", Core::ErrorToString(success));
-        } else {
-            Log("Successfully deactivated the plugin");
         }
     }
 

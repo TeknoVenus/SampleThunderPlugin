@@ -19,6 +19,7 @@ public:
     {
         // Map a json object name to c++ object
         Add(_T("greetings"), &Greetings);
+        Add(_T("privateComRpc"), &PrivateComRpcServer);
     }
     ~SamplePluginConfiguration() = default;
 
@@ -27,4 +28,5 @@ public:
 
 public:
     Core::JSON::ArrayType<Core::JSON::String> Greetings;
+    Core::JSON::Boolean PrivateComRpcServer;
 };

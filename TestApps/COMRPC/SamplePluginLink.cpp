@@ -11,28 +11,30 @@ void SamplePluginLink::NotificationHandler::SomethingHappend(const Source event)
     // plugin
 }
 
-SamplePluginLink::SamplePluginLink(const string& callsign)
+SamplePluginLink::SamplePluginLink(const string& callsign, const string& socketPath /*= ""*/)
     : _callsign(callsign)
     , _samplePluginInterface(nullptr)
-    , _samplePluginShell(nullptr)
+    //, _samplePluginShell(nullptr)
     , _notificationHandler()
 {
     Log("Constructing SamplePlugin link to callsign %s", _callsign.c_str());
 
-    // Attempt to open the COM-RPC connection
-    uint32_t success = BaseClass::Open(RPC::CommunicationTimeOut, BaseClass::Connector(), _callsign);
+    uint32_t success;
+
+    if (socketPath.empty())
+    {
+        // Use Thunder communicator socket
+        success = BaseClass::Open(RPC::CommunicationTimeOut, BaseClass::Connector(), _callsign);
+    }
+    else
+    {
+        // Use our own custom socket
+        Log("Connecting on custom com-rpc socket %s", socketPath.c_str());
+        success = BaseClass::Open(RPC::CommunicationTimeOut, Core::NodeId(_T(socketPath.c_str())), _callsign);
+    }
 
     if (success != Core::ERROR_NONE) {
         Log("Failed to open link to Thunder with error %s", Core::ErrorToString(success));
-    } else {
-        // For this example, show how to acquire another interface provided by the plugin. In this case,
-        // acquire the shell so we can send activate/deactive commands from the client
-        // TODO:: Is this safe to do here? What happens in non-happy-day scenarios with this interface - do we need to re-acquire it?
-        _samplePluginShell = BaseClass::Aquire<PluginHost::IShell>(RPC::CommunicationTimeOut, BaseClass::Connector(), _callsign);
-
-        if (_samplePluginShell == nullptr) {
-            Log("Failed to acquire IShell for sample plugin");
-        }
     }
 }
 
@@ -45,10 +47,10 @@ SamplePluginLink::~SamplePluginLink()
         _samplePluginInterface = nullptr;
     }
 
-    if (_samplePluginShell != nullptr) {
-        _samplePluginShell->Release();
-        _samplePluginShell = nullptr;
-    }
+    // if (_samplePluginShell != nullptr) {
+    //     _samplePluginShell->Release();
+    //     _samplePluginShell = nullptr;
+    // }
 }
 
 /**
@@ -103,8 +105,8 @@ uint32_t SamplePluginLink::Activate()
 {
     uint32_t errorCode = Core::ERROR_UNAVAILABLE;
 
-    if (_samplePluginShell != nullptr) {
-        errorCode = _samplePluginShell->Activate(PluginHost::IShell::REQUESTED);
+    if (BaseClass::ControllerInterface() != nullptr) {
+        errorCode = BaseClass::ControllerInterface()->Activate(PluginHost::IShell::REQUESTED);
     }
 
     return errorCode;
@@ -119,15 +121,15 @@ uint32_t SamplePluginLink::Deactivate()
 {
     uint32_t errorCode = Core::ERROR_UNAVAILABLE;
 
-    if (_samplePluginShell != nullptr) {
-        errorCode = _samplePluginShell->Deactivate(PluginHost::IShell::REQUESTED);
+    if (BaseClass::ControllerInterface() != nullptr) {
+        errorCode = BaseClass::ControllerInterface()->Deactivate(PluginHost::IShell::REQUESTED);
     }
 
     return errorCode;
 }
 
 /**
- * @brief Attempt to deactivate the plugin
+ * @brief Attempt to get the state of the plugin
  *
  * @return Thunder error code (ERROR_NONE for success)
  */
@@ -135,8 +137,8 @@ PluginHost::IShell::state SamplePluginLink::GetState()
 {
     auto state = PluginHost::IShell::state::UNAVAILABLE;
 
-    if (_samplePluginShell != nullptr) {
-        state = _samplePluginShell->State();
+    if (BaseClass::ControllerInterface() != nullptr) {
+        state = BaseClass::ControllerInterface()->State();
     }
 
     return state;

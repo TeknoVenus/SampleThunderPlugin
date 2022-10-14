@@ -3,6 +3,22 @@ A sample Thunder plugin supporting JSONRPC and COMRPC
 
 The plugin is split into two libraries - `libWPEFrameworkSamplePlugin.so` and `libWPEFrameworkSamplePluginImplementation.so`.
 
+## Configuration
+The plugin supports a configuration file with custom config options. The default values for this config are set in `SamplePlugin.config`, which is a [CMake++ QuickMap](https://github.com/toeb/cmakepp/blob/master/cmake/quickmap/README.md) (This is currently being phased out with a Python-based config generator but that is still a WIP).
+
+The plugin supports the following custom config options:
+* `greetings` [array of strings] - The greetings the `Greet()` method can randomly select.
+* `privateComRpc` [bool] - If true, the plugin will create its own COM-RPC server on the /tmp/samplePlugin unix socket. It will expose the ISamplePlugin COM-RPC interface over this socket.
+
+Beyond this, it supports the default Thunder plugin configuration options in the "root" object. Useful options here include:
+
+* `locator`: The name of the library holding the plugin implementation
+* `user`: Name of the user to run the out-of-process plugin under
+* `group`: Name of the group to run the out-of-process plugin in
+* `outofprocess`: True/False - whether to run the plugin in or out of process
+
+More options can be found in the `IShell.h` header in Thunder source code.
+
 ## Code Structure
 ### `Module.cpp`/`Module.h`
 All Thunder plugins must have a `Module.cpp`/`Module.h` file. This includes a number of necessary header files, defines the module name (used for trace control) and sets the build reference (i.e. git hash the plugin was built from)

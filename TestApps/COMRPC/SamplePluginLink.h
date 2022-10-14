@@ -38,7 +38,7 @@ class SamplePluginLink : protected BaseClass {
 
 public:
     // Upon constucting this object, we will attempt to connect to Thunder
-    SamplePluginLink(const string& callsign);
+    SamplePluginLink(const string& callsign, const string& socketPath = "");
 
     // Destructing this link will disconnect us from Thunder
     ~SamplePluginLink() override;
@@ -56,7 +56,6 @@ public:
     uint32_t Greet(const string& message, string& result);
     uint32_t Echo(const string& message, string& result);
 
-    // These are convience wrappers over the plugin shell
     // Be careful exposing these to clients, you probably don't want client applications to be able to
     // control your plugin lifecycle!
     uint32_t Activate();
@@ -66,10 +65,5 @@ public:
 private:
     const string _callsign;
     Exchange::ISamplePlugin* _samplePluginInterface;
-
-    // Only bother acquiring this interface if you need to be able to control plugin
-    // lifecycle or find out metadata about the plugin
-    PluginHost::IShell* _samplePluginShell;
-
     Core::Sink<NotificationHandler> _notificationHandler;
 };
