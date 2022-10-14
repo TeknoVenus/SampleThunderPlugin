@@ -126,3 +126,12 @@ void SomethingHappend(const Source event) override
     Exchange::JSamplePlugin::Event::SomethingHappend(_parent, event);
 }
 ```
+
+# Private COM-RPC Server
+It is possible for a plugin to provide a private COM-RPC communication channel, that will only expose the interfaces you choose. By default, the Thunder COM-RPC socket (`/tmp/communicator`) will provide access to all interfaces known to Thunder, and does not have any security.
+
+If using a custom COM-RPC server, you can provide the interfaces you wish to expose and override the `Aquire` (sic) method to return those interfaces (and log an error if anyone attempts to acquire an interface you do not host). This is important for a containerised application, where you may wish to only expose specific interfaces. It also means UNIX file permissions can be set tightly on the socket.
+
+Note by default the interfaces will still be available on /tmp/communicator (since this will be used to answer JSON-RPC method calls coming in from the Thunder daemon).
+
+In this repo, an example of this is provided and can be abled by setting the appropriate option in the plugin config file.
