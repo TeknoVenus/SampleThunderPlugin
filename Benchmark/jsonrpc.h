@@ -25,9 +25,6 @@
 #include <interfaces/json/JsonData_SamplePlugin.h>
 #include <memory.h>
 
-using namespace WPEFramework;
-using namespace JsonData::SamplePlugin;
-
 class JsonRpcFixture : public benchmark::Fixture
 {
 public:
@@ -44,5 +41,5 @@ private:
     void DoEcho(::benchmark::State &state, const std::string& msg);
 
 private:
-    std::unique_ptr<JSONRPC::LinkType<Core::JSON::IElement>> mRemoteObject;
+    std::unique_ptr<WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>> mRemoteObject;
 };

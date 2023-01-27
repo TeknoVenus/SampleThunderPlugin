@@ -14,15 +14,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-project(Benchmark)
+project(ThunderBenchmark)
 
+# Google Benchmark library
 find_package(benchmark REQUIRED)
 
-find_package(WPEFrameworkCOM REQUIRED)
-find_package(WPEFrameworkCore REQUIRED)
-find_package(WPEFrameworkCryptalgo REQUIRED)
-find_package(WPEFrameworkWebSocket REQUIRED)
-find_package(WPEFrameworkMessaging REQUIRED)
+find_package(${NAMESPACE}Core REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
+find_package(${NAMESPACE}WebSocket REQUIRED)
+find_package(${NAMESPACE}Messaging REQUIRED)
 
 
 add_executable(${PROJECT_NAME}
@@ -34,12 +34,13 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+    PRIVATE
     benchmark::benchmark
-    WPEFrameworkCore::WPEFrameworkCore
-    WPEFrameworkCOM::WPEFrameworkCOM
-    WPEFrameworkCryptalgo::WPEFrameworkCryptalgo
-    WPEFrameworkWebSocket::WPEFrameworkWebSocket
-    WPEFrameworkMessaging::WPEFrameworkMessaging
+    PRIVATE
+    ${NAMESPACE}Core::${NAMESPACE}Core
+    ${NAMESPACE}COM::${NAMESPACE}COM
+    ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
+    ${NAMESPACE}Messaging::${NAMESPACE}Messaging
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
