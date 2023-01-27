@@ -65,7 +65,7 @@ By default, WPEFramework does not enable tracing for plugins. Enable all trace l
 
 The mechanism for this varies slightly if you are using the older Tracing module in Thunder, or the new Messaging system on R4.
 
-Note that tracing won't appear if you don't have the TraceControl or MessagingControl plugin also installed and activated in Thunder.
+Note that tracing won't appear if you don't have the TraceControl or MessagingControl plugin also installed and activated in Thunder. Alternatively, in R4 start WPEFramework with the `-f` argument to flush all plugin traces to the console.
 
 ## JSON-RPC
 Make the following JSON-RPC request to the sample plugin to generate a greeting
@@ -108,7 +108,7 @@ If there is an error, it will be returned as per the JSON-RPC spec
 You can also use the JSONRPC test app included in the repo to see how to make requests from C++ code.
 
 ## COM-RPC
-To test COM-RPC, use the test client. For test purposes, the test client will activate & deactivate the plugin when it starts/exits respectively.
+To test COM-RPC, use the one of the test client apps provded in `TestApps`
 
 ## Switch between In-Process and Out-Of-Process execution
 To change if the plugin runs in or out-of-process, edit the `SamplePlugin.config` file in `Samplethunderplugin/SamplePlugin/SamplePlugin.config` and rebuild. Then restart WPEFramework.
