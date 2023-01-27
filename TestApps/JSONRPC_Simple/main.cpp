@@ -23,14 +23,12 @@
 // Our auto-generated JSON objects
 #include <interfaces/json/JsonData_SamplePlugin.h>
 
-#include "SamplePluginLink.h"
-
 using namespace WPEFramework;
 using namespace JsonData::SamplePlugin;
 
 int main(int argc, char const* argv[])
 {
-    Log("JSON-RPC Test App");
+    Log("JSON-RPC Simple Test App");
 
     // Must tell the JSON-RPC client where to find Thunder
     const std::string thunderUrl = "127.0.0.1:55555";
@@ -38,31 +36,24 @@ int main(int argc, char const* argv[])
     Log("Attempting to connect to Thunder at %s", thunderUrl.c_str());
 
     {
-        SamplePluginLink remoteObject(_T("SamplePlugin.1"), _T("client.jsonrpc.2"));
+        JSONRPC::SmartLinkType<Core::JSON::IElement> remoteObject(_T("SamplePlugin.1"), _T("client.jsonrpc.2"));
 
-        // Block and wait (max 2 seconds) for us to establish a connection with Thunder
-        if (remoteObject.WaitForLinkEstablish(2000)) {
-            if (remoteObject.IsActivated()) {
-                Log("SamplePlugin is activated");
+        // Wait 1 second for the JSON-RPC link to be established
+        // See other JSON-RPC example for a better way to do this
+        SleepS(1);
 
-                // Build our message to send over JSON-RPC
-                GreetParamsData params;
-                params.Message = "World";
-                Core::JSON::String result;
+        // Build our message to send over JSON-RPC
+        GreetParamsData params;
+        params.Message = "World";
+        Core::JSON::String result;
 
-                // Call the greeter method
-                auto success = remoteObject.Invoke<GreetParamsData, Core::JSON::String>(5000, "greet", params, result);
+        // Call the greeter method
+        auto success = remoteObject.Invoke<GreetParamsData, Core::JSON::String>(5000, "greet", params, result);
 
-                if (success == Core::ERROR_NONE) {
-                    Log("Successfully generated greeting: %s", result.Value().c_str());
-                } else {
-                    Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
-                }
-            } else {
-                Log("SamplePlugin is deactivated");
-            }
+        if (success == Core::ERROR_NONE) {
+            Log("Successfully generated greeting: %s", result.Value().c_str());
         } else {
-            Log("Timeout waiting for link to establish");
+            Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
         }
     }
 

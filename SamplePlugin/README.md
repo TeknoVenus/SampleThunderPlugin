@@ -28,6 +28,13 @@ Configuration for the plugin - change settings such as whether the plugin runs i
 
 This config file is converted into a JSON file during configure time.
 
+:warning: This config format is being replaced by a new Python-based generator in R4 and beyond. This config file is kept around for older platforms not using this new generator
+
+### `SamplePlugin.conf.in`
+Configuration for the plugin in the new python-based config format.
+
+The settings are the same as those configured in the old-format `.config` file
+
 ### `SamplePluginConfiguration.h`
 A JSON object that represents the custom configuration for this plugin.
 

@@ -15,22 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(JSONRPCTestApp)
+project(COMRPCSimpleTestApp)
 
 find_package(${NAMESPACE}Core REQUIRED)
-find_package(${NAMESPACE}WebSocket REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
-
-# Build simple test app
+# Build simple test app to exercise client library
 add_executable(${PROJECT_NAME}
-        main.cpp
         Module.cpp
+        main.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         ${NAMESPACE}Core::${NAMESPACE}Core
-        ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
+        ${NAMESPACE}COM::${NAMESPACE}COM
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

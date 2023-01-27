@@ -19,14 +19,12 @@
 
 #include "../Log.h"
 #include "SamplePluginLink.h"
-#include <chrono>
-#include <thread>
 
-#include <memory>
+using namespace WPEFramework;
 
 int main(int argc, char const* argv[])
 {
-    Log("Starting SamplePluginClient");
+    Log("Starting COM-RPC Test App");
 
     /**
      * This example app will do the following:
@@ -45,30 +43,28 @@ int main(int argc, char const* argv[])
      */
 
     {
-        // For demo purposes, connect over our custom COM-RPC server
-        // The socket path is optional, if not provided will default to /tmp/communicator
-        SamplePluginLink samplePluginLink("SamplePlugin", "/tmp/SamplePlugin");
+        // For demo purposes, connect over our custom COM-RPC server if it exists. If it doesn't exist, will
+        // connect over the default communicator socket (normally /tmp/communicator)
+        Core::File samplePluginRpcServer("/tmp/SamplePlugin");
+        SamplePluginLink samplePluginLink("SamplePlugin", samplePluginRpcServer.Exists() ? samplePluginRpcServer.Name() : "");
 
         // Activate the plugin if it's not already
         if (samplePluginLink.GetState() == PluginHost::IShell::state::DEACTIVATED) {
             auto success = samplePluginLink.Activate();
 
-            if (success != Core::ERROR_NONE) {
-                Log("Failed to activate the plugin with error code %s", Core::ErrorToString(success));
-            } else {
+            if (success == Core::ERROR_NONE) {
                 Log("Successfully activated the plugin");
+            } else {
+                Log("Failed to activate the plugin with error code %s", Core::ErrorToString(success));
             }
         }
 
         Log("Trying to call greeter method");
         string result;
-
-        // By using the SmartLink, we can safely call this method knowing we will get a sensible
-        // error message if the link is not operational
         auto success = samplePluginLink.Greet("World", result);
 
         if (success == Core::ERROR_NONE) {
-            Log("Generated greeting %s", result.c_str());
+            Log("Generated greeting '%s'", result.c_str());
         } else {
             Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
         }

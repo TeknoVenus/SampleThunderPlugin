@@ -3,7 +3,8 @@
 #include "Module.h"
 #include <interfaces/ISamplePlugin.h>
 
-using namespace WPEFramework;
+namespace WPEFramework {
+
 using BaseClass = RPC::SmartInterfaceType<Exchange::ISamplePlugin>;
 
 /**
@@ -56,8 +57,8 @@ public:
     uint32_t Greet(const string& message, string& result);
     uint32_t Echo(const string& message, string& result);
 
-    // Be careful exposing these to clients, you probably don't want client applications to be able to
-    // control your plugin lifecycle!
+    // For demo purposes, we expose Activate()/Deactivate() methods, but in the real world be careful
+    // about exposing these.
     uint32_t Activate();
     uint32_t Deactivate();
     PluginHost::IShell::state GetState();
@@ -67,3 +68,4 @@ private:
     Exchange::ISamplePlugin* _samplePluginInterface;
     Core::Sink<NotificationHandler> _notificationHandler;
 };
+}

@@ -1,0 +1,10 @@
+autostart = True
+
+configuration = JSON()
+configuration.add("greetings", ['Hello', 'Hi', 'Goodbye', 'Hey', "Good Morning", "Good Afternoon"])
+configuration.add("privateComRpc", True)
+
+root = JSON()
+root.add("outofprocess", True)
+root.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
+configuration.add("root", root)

@@ -1,6 +1,7 @@
 #include "SamplePluginLink.h"
-
 #include "../Log.h"
+
+using namespace WPEFramework;
 
 void SamplePluginLink::NotificationHandler::SomethingHappend(const Source event)
 {
@@ -16,10 +17,9 @@ SamplePluginLink::SamplePluginLink(const string& callsign, const string& socketP
     , _samplePluginInterface(nullptr)
     , _notificationHandler()
 {
-    Log("Constructing SamplePlugin link to callsign %s", _callsign.c_str());
+    Log("Constructing SamplePluginLink for callsign %s", _callsign.c_str());
 
     uint32_t success;
-
     if (socketPath.empty())
     {
         // Use Thunder communicator socket
@@ -32,7 +32,9 @@ SamplePluginLink::SamplePluginLink(const string& callsign, const string& socketP
         success = BaseClass::Open(RPC::CommunicationTimeOut, Core::NodeId(_T(socketPath.c_str())), _callsign);
     }
 
-    if (success != Core::ERROR_NONE) {
+    if (success == Core::ERROR_NONE) {
+        Log("Connected to Thunder over COM-RPC");
+    } else {
         Log("Failed to open link to Thunder with error %s", Core::ErrorToString(success));
     }
 }
@@ -139,6 +141,9 @@ PluginHost::IShell::state SamplePluginLink::GetState()
 }
 
 // Begin methods from ISamplePlugin interface
+// Note: We could just make _samplePluginInterface public and allow classes
+// to invoke it directly, but we add these wrappers so clients don't need
+// to worry about checking for null
 
 uint32_t SamplePluginLink::Greet(const string& message, string& result)
 {
