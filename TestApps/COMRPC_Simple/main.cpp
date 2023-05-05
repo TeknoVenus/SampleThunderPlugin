@@ -48,7 +48,10 @@ int main(int argc, char const* argv[])
                     } else {
                         Log("Failed to generate greeting with error %s", Core::ErrorToString(success));
                     }
+
+                    samplePlugin->Release();
                 }
+
             } else {
                 Log("SamplePlugin is not operational - is it activated?");
             }
